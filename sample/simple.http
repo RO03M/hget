@@ -1,0 +1,12 @@
+### Get users
+GET https://jsonplaceholder.typicode.com/users
+Accept: application/json
+
+### Create user
+POST https://jsonplaceholder.typicode.com/users
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "john@example.com"
+}
