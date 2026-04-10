@@ -391,6 +391,7 @@ dependencies = [
  "anyhow",
  "clap",
  "hget-core",
+ "serde_json",
  "tokio",
 ]
 
