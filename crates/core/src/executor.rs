@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use reqwest::{Client, Method};
 
-use crate::parser::HttpRequest;
+use crate::http_request::HttpRequest;
 
 #[derive(Debug)]
 pub struct HttpResponse {

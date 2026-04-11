@@ -1,11 +1,4 @@
-#[derive(Debug, Clone)]
-pub struct HttpRequest {
-    pub name: String,
-    pub method: String,
-    pub url: String,
-    pub headers: Vec<(String, String)>,
-    pub body: Option<String>,
-}
+use crate::http_request::HttpRequest;
 
 #[derive(PartialEq, Debug)]
 enum State {
