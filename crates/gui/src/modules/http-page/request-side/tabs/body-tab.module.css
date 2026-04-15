@@ -1,0 +1,26 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.editor {
+    all: unset;
+    flex: 1;
+    display: block;
+    width: 100%;
+    min-height: 200px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text);
+    line-height: 1.6;
+    resize: none;
+    box-sizing: border-box;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+.editor::placeholder {
+    color: var(--color-text-disabled);
+}

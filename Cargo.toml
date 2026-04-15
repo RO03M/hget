@@ -6,6 +6,11 @@ members = [
 ]
 resolver = "2"
 
+[profile.dev]
+opt-level = 1
+debug = true
+overflow-checks = true
+
 [workspace.dependencies]
 # async runtime
 tokio = { version = "1", features = ["full"] }

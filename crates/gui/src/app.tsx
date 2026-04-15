@@ -1,5 +1,5 @@
-import { OpenCollectionButton } from "./components/open-collection-button";
 import "./index.css";
+import { HttpPageContainer } from "./modules/http-page";
 
 function App() {
 
@@ -10,7 +10,7 @@ function App() {
 
   return (
     <main className="container">
-      <OpenCollectionButton />
+      <HttpPageContainer />
     </main>
   );
 }

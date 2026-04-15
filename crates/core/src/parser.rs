@@ -124,19 +124,18 @@ mod tests {
             res[0].headers[0],
             (
                 "Authorization".to_string(),
-                " Bearer token123".to_string()
+                "Bearer token123".to_string()
             )
         );
         assert_eq!(
             res[0].headers[1],
-            ("Accept".to_string(), " application/json".to_string())
+            ("Accept".to_string(), "application/json".to_string())
         );
     }
 
     #[test]
     fn test_body_parsed() {
-        let input = "POST https://example.com/users\nContent-Type:
-  application/json\n\n{\"name\": \"John\"}";
+        let input = "POST https://example.com/users\nContent-Type: application/json\n\n{\"name\": \"John\"}";
         let res = parse(input);
         assert_eq!(res[0].method, "POST");
         assert!(res[0].body.is_some());

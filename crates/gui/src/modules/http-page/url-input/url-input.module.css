@@ -1,0 +1,21 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg-elevated);
+    color: var(--color-text);
+    border-radius: 4px;
+}
+
+.url-input {
+    all: unset;
+    flex: 1;
+}
+
+.url-input {
+    font-size: 14px;
+}
+
+.url-input::placeholder {
+    color: var(--color-text-faint);
+}
