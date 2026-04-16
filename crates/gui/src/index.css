@@ -45,9 +45,15 @@
 }
 
 html,
-body {
+body,
+#root,
+.container {
     background-color: var(--color-bg-base);
     color: var(--color-text);
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 table {

@@ -1,4 +1,3 @@
-import "./index.css";
 import { HttpPageContainer } from "./modules/http-page";
 
 function App() {

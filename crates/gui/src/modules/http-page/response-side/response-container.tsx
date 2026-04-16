@@ -19,7 +19,9 @@ export function ResponseContainer(props: Props) {
     }
 
     return (
-        <div>
+        <div
+            style={{ height: "100%" }}
+        >
             <Tabs
                 value={currentTab}
                 onChange={(value) => setCurrentTab(value)}
@@ -27,16 +29,24 @@ export function ResponseContainer(props: Props) {
                 <Tab label="Response" value={"response"} />
                 <Tab label="Headers" value={"headers"} />
             </Tabs>
-            {currentTab == "response" && (
-                <ResponseTab
-                    response={props.response}
-                />
-            )}
-            {currentTab == "headers" && (
-                <HeadersTab
-                    headers={props.response.headers}
-                />
-            )}
+
+            <div
+                style={{
+                    overflowY: "scroll",
+                    height: "90%"
+                }}
+            >
+                {currentTab == "response" && (
+                    <ResponseTab
+                        response={props.response}
+                    />
+                )}
+                {currentTab == "headers" && (
+                    <HeadersTab
+                        headers={props.response.headers}
+                    />
+                )}
+            </div>
         </div>
     )
 }

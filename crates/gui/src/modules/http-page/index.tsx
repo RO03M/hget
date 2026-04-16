@@ -33,7 +33,12 @@ export function HttpPageContainer() {
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={methods.handleSubmit(onSubmit)}>
+            <form
+                onSubmit={methods.handleSubmit(onSubmit)}
+                style={{
+                    height: "100%"
+                }}
+            >
                 <UrlInput />
                 <SplitPane>
                     <RequestSide />

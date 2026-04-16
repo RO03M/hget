@@ -32,6 +32,7 @@ export function SplitPane(props: SplitPaneProps) {
         const handleMouseUp = () => {
             setDragging(false);
             document.body.style.userSelect = "";
+            document.body.style.webkitUserSelect = "";
         };
 
         window.addEventListener("mousemove", handleMouseMove);
@@ -46,6 +47,7 @@ export function SplitPane(props: SplitPaneProps) {
     const startDragging = () => {
         setDragging(true);
         document.body.style.userSelect = "none";
+        document.body.style.webkitUserSelect = "none";
     };
 
     const [left, right] = props.children;
