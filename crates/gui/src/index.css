@@ -1,33 +1,33 @@
 :root {
     /* Background layers */
-    --color-bg-base:     #111111;
-    --color-bg-surface:  #1a1a1a;
+    --color-bg-base: #111111;
+    --color-bg-surface: #1a1a1a;
     --color-bg-elevated: #222222;
-    --color-bg-hover:    #262626;
-    --color-bg-active:   #2e2e2e;
+    --color-bg-hover: #262626;
+    --color-bg-active: #2e2e2e;
 
     /* Borders */
-    --color-border:       #2e2e2e;
+    --color-border: #2e2e2e;
     --color-border-muted: #222222;
 
     /* Text */
-    --color-text:          #e5e5e5;
-    --color-text-muted:    #9ca3af;
-    --color-text-faint:    #6b7280;
+    --color-text: #e5e5e5;
+    --color-text-muted: #9ca3af;
+    --color-text-faint: #6b7280;
     --color-text-disabled: #4b5563;
 
     /* HTTP method colors */
-    --color-method-get:     #29a665;
-    --color-method-post:    #d97706;
-    --color-method-put:     #3b82f6;
-    --color-method-patch:   #06b6d4;
-    --color-method-delete:  #ef4444;
-    --color-method-head:    #8b5cf6;
+    --color-method-get: #29a665;
+    --color-method-post: #d97706;
+    --color-method-put: #3b82f6;
+    --color-method-patch: #06b6d4;
+    --color-method-delete: #ef4444;
+    --color-method-head: #8b5cf6;
     --color-method-options: #6b7280;
 
     /* Semantic */
-    --color-accent:  #3b82f6;
-    --color-danger:  #ef4444;
+    --color-accent: #3b82f6;
+    --color-danger: #ef4444;
     --color-success: #29a665;
     --color-warning: #d97706;
 
@@ -44,7 +44,44 @@
     --font-sans: system-ui, -apple-system, sans-serif;
 }
 
-html, body {
+html,
+body {
     background-color: var(--color-bg-base);
     color: var(--color-text);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th,
+td {
+    padding: 10px 12px;
+    text-align: left;
+}
+
+th {
+    background: var(--color-bg-elevated);
+    font-weight: 600;
+    color: #9ca3af;
+    border-bottom: 1px solid #1f2937;
+}
+
+td {
+    border-bottom: 1px solid #1f2937;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background: var(--color-bg-active);
 }

@@ -3,12 +3,19 @@ import { UrlInput } from "./url-input";
 import { RequestSide } from "./request-side/request-side";
 import { HttpRequest, defaultFormValues } from "./request-side/types";
 import { invoke } from "@tauri-apps/api/core";
+import { SplitPane } from "../../components/split-pane";
+import { ResponseContainer } from "./response-side/response-container";
+import { HttpResponse } from "../../types";
+import { useState } from "react";
 
 export function HttpPageContainer() {
+    const [response, setResponse] = useState<HttpResponse | null>(null);
+
     const methods = useForm<HttpRequest>({ defaultValues: defaultFormValues() });
 
     async function onSubmit(data: HttpRequest) {
-        const response = await invoke("send_request", {
+        console.log(data);
+        const response = await invoke<HttpResponse>("send_request", {
             request: {
                 name: "my request",
                 method: data.method,
@@ -20,6 +27,7 @@ export function HttpPageContainer() {
             }
         });
 
+        setResponse(response);
         console.log(response);
     }
 
@@ -27,7 +35,12 @@ export function HttpPageContainer() {
         <FormProvider {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmit)}>
                 <UrlInput />
-                <RequestSide />
+                <SplitPane>
+                    <RequestSide />
+                    <ResponseContainer
+                        response={response}
+                    />
+                </SplitPane>
             </form>
         </FormProvider>
     );
