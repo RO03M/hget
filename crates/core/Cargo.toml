@@ -11,3 +11,4 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 tempfile = "3.27.0"
+slug = "0.1.6"

@@ -6,7 +6,11 @@ import { MethodSelect } from "./method-select";
 import styles from "./url-input.module.css";
 import { SaveIcon } from "../../../icons/save-icon";
 
-export function UrlInput() {
+interface Props {
+    onSave: () => void;
+}
+
+export function UrlInput(props: Props) {
     const { register } = useFormContext<HttpRequest>();
 
     return (
@@ -26,6 +30,7 @@ export function UrlInput() {
             />
             <IconButton
                 type={"button"}
+                onClick={() => props.onSave()}
             >
                 <SaveIcon />
             </IconButton>

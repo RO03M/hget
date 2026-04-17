@@ -1,4 +1,4 @@
-use hget_core::{executor::HttpResponse, http_request::HttpRequest};
+use hget_core::{executor::HttpResponse, http_request::HttpRequest, repository::{Repository}};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -13,12 +13,19 @@ async fn send_request(request: HttpRequest) -> Result<HttpResponse, String> {
     return Ok(response);
 }
 
+#[tauri::command]
+async fn save_request(request: HttpRequest) {
+    let repository = Repository::new("./testemalandro".into());
+    repository.create_collection("teste");
+    repository.save_http_file(request);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, send_request])
+        .invoke_handler(tauri::generate_handler![greet, send_request, save_request])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

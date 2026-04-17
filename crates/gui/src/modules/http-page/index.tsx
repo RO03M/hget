@@ -12,13 +12,14 @@ import { safe } from "../../utils/safe";
 export function HttpPageContainer() {
     const [response, setResponse] = useState<HttpResponse | null>(null);
     const [error, setError] = useState("");
+    const [requestName, setRequestName] = useState("Unnamed");
 
     const methods = useForm<HttpRequest>({ defaultValues: defaultFormValues() });
 
     async function onSubmit(data: HttpRequest) {
         const { data: response, error: err } = await safe(invoke<HttpResponse>("send_request", {
             request: {
-                name: "my request",
+                name: requestName,
                 method: data.method,
                 url: data.url,
                 headers: data.headers
@@ -36,6 +37,21 @@ export function HttpPageContainer() {
         setResponse(response);
     }
 
+    async function onSave() {
+        const data = methods.getValues();
+        await safe(invoke("save_request", {
+            request: {
+                name: requestName,
+                method: data.method,
+                url: data.url,
+                headers: data.headers
+                    .filter(h => h.enabled && h.name)
+                    .map(h => [h.name, h.value] as [string, string]),
+                body: data.body.content || null,
+            }
+        }));
+    }
+
     return (
         <FormProvider {...methods}>
             <form
@@ -44,7 +60,9 @@ export function HttpPageContainer() {
                     height: "100%"
                 }}
             >
-                <UrlInput />
+                <UrlInput
+                    onSave={onSave}
+                />
                 <span>{error}</span>
                 <SplitPane>
                     <RequestSide />

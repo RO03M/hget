@@ -1,5 +1,7 @@
 use std::{fs, path::PathBuf};
 
+use crate::http_request::HttpRequest;
+
 pub struct Repository {
     pub root: PathBuf,
 }
@@ -11,6 +13,7 @@ impl Repository {
         };
     }
 
+    // acho que collection não faz sentido aqui, pq o repository é a própria collection
     pub fn create_collection(&self, name: &str) -> Result<(), ()> {
         let _ = fs::create_dir_all(self.root.join(name));
 
@@ -43,6 +46,15 @@ impl Repository {
         return Ok(collections);
     }
 
+    pub fn save_http_file(&self, http_request: HttpRequest) -> anyhow::Result<()> {
+        let mut filename = slug::slugify(http_request.name.clone());
+        filename.push_str(".http");
+        let path = self.root.join(filename);
+
+        let _ = fs::write(path, http_request.to_string())?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
