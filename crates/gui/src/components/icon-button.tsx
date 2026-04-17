@@ -11,6 +11,7 @@ export function IconButton(props: Props) {
     
     return (
         <button
+            type={"button"}
             {...props}
             className={[props.className, styles["icon-button"]].join(" ")}
             style={{

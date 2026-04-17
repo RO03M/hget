@@ -4,6 +4,7 @@ import { SendIcon } from "../../../icons/send-icon";
 import { HttpRequest } from "../request-side/types";
 import { MethodSelect } from "./method-select";
 import styles from "./url-input.module.css";
+import { SaveIcon } from "../../../icons/save-icon";
 
 export function UrlInput() {
     const { register } = useFormContext<HttpRequest>();
@@ -23,7 +24,14 @@ export function UrlInput() {
                 spellCheck={false}
                 autoCorrect="off"
             />
-            <IconButton>
+            <IconButton
+                type={"button"}
+            >
+                <SaveIcon />
+            </IconButton>
+            <IconButton
+                type={"submit"}
+            >
                 <SendIcon />
             </IconButton>
         </div>

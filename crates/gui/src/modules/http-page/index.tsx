@@ -1,5 +1,5 @@
 import { useForm, FormProvider } from "react-hook-form";
-import { UrlInput } from "./url-input";
+import { UrlInput } from "./url-input/url-input";
 import { RequestSide } from "./request-side/request-side";
 import { HttpRequest, defaultFormValues } from "./request-side/types";
 import { invoke } from "@tauri-apps/api/core";
@@ -7,15 +7,16 @@ import { SplitPane } from "../../components/split-pane";
 import { ResponseContainer } from "./response-side/response-container";
 import { HttpResponse } from "../../types";
 import { useState } from "react";
+import { safe } from "../../utils/safe";
 
 export function HttpPageContainer() {
     const [response, setResponse] = useState<HttpResponse | null>(null);
+    const [error, setError] = useState("");
 
     const methods = useForm<HttpRequest>({ defaultValues: defaultFormValues() });
 
     async function onSubmit(data: HttpRequest) {
-        console.log(data);
-        const response = await invoke<HttpResponse>("send_request", {
+        const { data: response, error: err } = await safe(invoke<HttpResponse>("send_request", {
             request: {
                 name: "my request",
                 method: data.method,
@@ -25,10 +26,14 @@ export function HttpPageContainer() {
                     .map(h => [h.name, h.value] as [string, string]),
                 body: data.body.content || null,
             }
-        });
+        }));
+
+        if (err !== null) {
+            setError(err.message);
+            return;
+        }
 
         setResponse(response);
-        console.log(response);
     }
 
     return (
@@ -40,6 +45,7 @@ export function HttpPageContainer() {
                 }}
             >
                 <UrlInput />
+                <span>{error}</span>
                 <SplitPane>
                     <RequestSide />
                     <ResponseContainer

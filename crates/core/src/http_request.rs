@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::Deserialize;
 
@@ -30,8 +31,12 @@ impl HttpRequest {
     }
 
     pub async fn run(&self) -> anyhow::Result<HttpResponse> {
+        if self.url.is_empty() {
+            return Err(anyhow!("Invalid URL"));
+        }
+
         let client = Client::new();
-        let method = Method::from_str(&self.method).unwrap();
+        let method = Method::from_str(&self.method)?;
 
         let mut builder = client.request(method, &self.url);
 
@@ -43,7 +48,7 @@ impl HttpRequest {
             builder = builder.body(body.clone());
         }
 
-        let response = builder.send().await.unwrap();
+        let response = builder.send().await?;
 
         let status = response.status().as_u16();
         let headers: Vec<(String, String)> = response

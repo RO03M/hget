@@ -1,5 +1,5 @@
 export interface IconSquaredProps {
-    size: number;
+    size?: number;
     color?: string;
 }
 

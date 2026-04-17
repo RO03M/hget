@@ -7,11 +7,10 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-async fn send_request(request: HttpRequest) -> HttpResponse {
-    let response = request.run().await.unwrap();
-    println!("{:?}", request.to_string());
+async fn send_request(request: HttpRequest) -> Result<HttpResponse, String> {
+    let response = request.run().await.map_err(|e| e.to_string())?;
 
-    return response;
+    return Ok(response);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
