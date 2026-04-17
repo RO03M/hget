@@ -17,7 +17,7 @@ async fn send_request(request: HttpRequest) -> Result<HttpResponse, String> {
 async fn save_request(request: HttpRequest) {
     let repository = Repository::new("./testemalandro".into());
     repository.create_collection("teste");
-    repository.save_http_file(request);
+    repository.save_http_file(&request, &".".into());
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
