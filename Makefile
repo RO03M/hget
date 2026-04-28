@@ -20,7 +20,7 @@ build-gui:
 	cd crates/gui && yarn tauri build
 
 dev-gui:
-	cd crates/gui && yarn tauri dev
+	cd crates/gui && WEBKIT_DISABLE_DMABUF_RENDERER=1 yarn tauri dev
 
 install-gui-deps:
 	cd crates/gui && yarn install

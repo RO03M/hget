@@ -3,3 +3,9 @@ export interface HttpResponse {
     headers: [string, string][];
     body: string;
 }
+
+export interface FSNode {
+    name: string;
+    is_dir: boolean;
+    children: FSNode[];
+}

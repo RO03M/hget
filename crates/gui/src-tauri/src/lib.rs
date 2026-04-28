@@ -1,4 +1,4 @@
-use hget_core::{executor::HttpResponse, http_request::HttpRequest, repository::{Repository}};
+use hget_core::{executor::HttpResponse, helpers::{FSNode, list_http_tree}, http_request::HttpRequest, repository::Repository};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -20,12 +20,24 @@ async fn save_request(request: HttpRequest) {
     repository.save_http_file(&request, &".".into());
 }
 
+#[tauri::command]
+async fn get_tree() -> Vec<FSNode> {
+    let nodes = list_http_tree(std::path::Path::new("/home/romera/projects/hget"));
+
+    return nodes;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, send_request, save_request])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            send_request,
+            save_request,
+            get_tree
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

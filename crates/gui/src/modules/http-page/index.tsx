@@ -64,7 +64,9 @@ export function HttpPageContainer() {
                     onSave={onSave}
                 />
                 <span>{error}</span>
-                <SplitPane>
+                <SplitPane
+                    max={1000}
+                >
                     <RequestSide />
                     <ResponseContainer
                         response={response}

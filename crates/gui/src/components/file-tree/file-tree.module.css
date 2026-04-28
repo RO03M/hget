@@ -1,0 +1,27 @@
+ul.folder {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li.item {
+    user-select: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.label {
+    width: 100%;
+    padding-left: 8px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.label:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}

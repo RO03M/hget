@@ -1,6 +1,7 @@
 export interface IconSquaredProps {
     size?: number;
     color?: string;
+    rotation?: number;
 }
 
 export interface IconDefaultProps {
