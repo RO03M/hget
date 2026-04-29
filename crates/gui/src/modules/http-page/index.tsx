@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { safe } from "../../utils/safe";
 import { useStore } from "../../store/app-store";
 import { useFile } from "../../hooks/use-file";
+import { useTabs } from "../../store/use-tabs";
 
 export function HttpPageContainer() {
     const [response, setResponse] = useState<HttpResponse | null>(null);
@@ -17,7 +18,7 @@ export function HttpPageContainer() {
     const [requestName, setRequestName] = useState("Unnamed");
 
     const methods = useForm<HttpRequest>({ defaultValues: defaultFormValues() });
-    const { path } = useStore();
+    const { activeTab } = useTabs();
     const { getFile } = useFile();
 
     async function onSubmit(data: HttpRequest) {
@@ -57,9 +58,11 @@ export function HttpPageContainer() {
     }
 
     useEffect(() => {
-        if (path === null) {
+        if (!activeTab) {
             return;
         }
+
+        const path = activeTab?.path;
 
         (async () => {
             const response = await getFile(path);
@@ -67,7 +70,7 @@ export function HttpPageContainer() {
             if (response.error != null) {
                 return;
             }
-            console.log(response.data);
+
             methods.setValue("auth", response.data.auth);
             methods.setValue("body", response.data.body ?? "");
             methods.setValue("headers", []);
@@ -75,9 +78,9 @@ export function HttpPageContainer() {
             methods.setValue("params", []);
             methods.setValue("url", response.data.url);
         })();
-    }, [path]);
+    }, [activeTab]);
 
-    if (!path) {
+    if (!activeTab) {
         return;
     }
 
@@ -86,21 +89,35 @@ export function HttpPageContainer() {
             <form
                 onSubmit={methods.handleSubmit(onSubmit)}
                 style={{
-                    height: "100%"
+                    display: "flex",
+                    flexDirection: "column",
+                    flex: 1,
+                    overflow: "hidden"
                 }}
             >
                 <UrlInput
                     onSave={onSave}
                 />
-                <span>{error}</span>
-                <SplitPane
-                    max={1000}
+                <div
+                    style={{
+                        flex: 1,
+                        overflowY: "scroll"
+                    }}
                 >
-                    <RequestSide />
-                    <ResponseContainer
-                        response={response}
-                    />
-                </SplitPane>
+                    {/* {Array.from(Array(100).keys()).map(() => (
+                        <p>fill</p>
+                    ))} */}
+                    <SplitPane
+                        max={1000}
+                    >
+                        <RequestSide />
+                        <ResponseContainer
+                            response={response}
+                        />
+                    </SplitPane>
+                </div>
+                <span>{error}</span>
+
             </form>
         </FormProvider>
     );

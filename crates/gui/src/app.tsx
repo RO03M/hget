@@ -1,5 +1,6 @@
 import { SplitPane } from "./components/split-pane";
 import { SideMenu } from "./layout/side-menu";
+import { Container } from "./modules/container";
 import { HttpPageContainer } from "./modules/http-page";
 import { AppState } from "./store/app-store";
 
@@ -15,7 +16,8 @@ function App() {
       <main className="container">
         <SplitPane>
           <SideMenu />
-          <HttpPageContainer />
+          <Container />
+          {/* <HttpPageContainer /> */}
         </SplitPane>
       </main>
     </AppState>
