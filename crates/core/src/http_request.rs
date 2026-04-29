@@ -1,11 +1,11 @@
 use std::str::FromStr;
 use anyhow::anyhow;
 use reqwest::{Client, Method};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::executor::HttpResponse;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpRequest {
     pub name: String,
     pub method: String,

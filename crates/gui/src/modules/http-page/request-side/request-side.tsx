@@ -19,6 +19,8 @@ export function RequestSide() {
     const params  = useWatch({ name: "params"  }) as KeyValueRow[];
     const headers = useWatch({ name: "headers" }) as KeyValueRow[];
 
+    console.log(params, headers);
+
     const tabs: { id: Tab; label: string; badge?: number }[] = [
         { id: "params",  label: "Params",  badge: countActive(params) },
         { id: "body",    label: "Body" },

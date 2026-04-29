@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use hget_core::{executor::HttpResponse, helpers::{FSNode, list_http_tree}, http_request::HttpRequest, repository::Repository};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -21,8 +23,19 @@ async fn save_request(request: HttpRequest) {
 }
 
 #[tauri::command]
+async fn load_file(path: PathBuf) -> Result<HttpRequest, String> {
+    let repository = Repository::new("/home/romera/projects/hget/sample".into());
+
+    let path = path.strip_prefix("/").unwrap_or(&path);
+
+    let http_request = repository.get_http_file(path)?;
+
+    return Ok(http_request);
+}
+
+#[tauri::command]
 async fn get_tree() -> Vec<FSNode> {
-    let nodes = list_http_tree(std::path::Path::new("/home/romera/projects/hget"));
+    let nodes = list_http_tree(std::path::Path::new("/home/romera/projects/hget/sample"));
 
     return nodes;
 }
@@ -36,7 +49,8 @@ pub fn run() {
             greet,
             send_request,
             save_request,
-            get_tree
+            get_tree,
+            load_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

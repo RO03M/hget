@@ -1,6 +1,6 @@
-use std::{fs, path::{PathBuf}};
+use std::{fs, path::{Path, PathBuf}};
 
-use crate::http_request::HttpRequest;
+use crate::{http_request::HttpRequest, parser::parse};
 
 pub struct Repository {
     pub root: PathBuf,
@@ -9,6 +9,14 @@ pub struct Repository {
 impl Repository {
     pub fn new(root: PathBuf) -> Self {
         return Self { root };
+    }
+
+    pub fn get_http_file(&self, path: &Path) -> Result<HttpRequest, String> {
+        let file = std::fs::read_to_string(self.root.join(path)).map_err(|e| e.to_string())?;
+
+        let http_request = parse(&file).get(0).expect("Failed to parse http request").clone();
+
+        return Ok(http_request);
     }
 
     // acho que collection não faz sentido aqui, pq o repository é a própria collection

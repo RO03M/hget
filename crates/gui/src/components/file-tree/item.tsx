@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { FSNode } from "../../types";
 import { FileTree } from "./file-tree";
 import styles from "./file-tree.module.css";
@@ -8,23 +8,28 @@ interface Props {
     root: string;
     node: FSNode;
     depth: number;
+    onClick?: (path: string) => void;
 }
 
 export function Item(props: Props) {
-    const { node, depth, root } = props;
+    const { node, depth } = props;
 
     const [collapsed, setCollapsed] = useState(true);
 
+    const path = useMemo(() => {
+        return `${props.root}/${node.name}`
+    }, [props.root, props.node])
+
     const toggle = useCallback((event: React.MouseEvent) => {
         event.stopPropagation();
+
+        props.onClick?.(path);
 
         if (node.is_dir) {
             setCollapsed((prev) => !prev);
             return;
         }
-
-        console.log(root);
-    }, [node, root]);
+    }, [node, path, props.onClick]);
 
     return (
         <li className={styles.item}>
@@ -41,7 +46,8 @@ export function Item(props: Props) {
                 <FileTree
                     nodes={node.children}
                     depth={depth + 1}
-                    root={props.root}
+                    root={path}
+                    onClick={props.onClick}
                 />
             )}
         </li>

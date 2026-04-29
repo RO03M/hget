@@ -6,8 +6,10 @@ import { invoke } from "@tauri-apps/api/core";
 import { SplitPane } from "../../components/split-pane";
 import { ResponseContainer } from "./response-side/response-container";
 import { HttpResponse } from "../../types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { safe } from "../../utils/safe";
+import { useStore } from "../../store/app-store";
+import { useFile } from "../../hooks/use-file";
 
 export function HttpPageContainer() {
     const [response, setResponse] = useState<HttpResponse | null>(null);
@@ -15,6 +17,8 @@ export function HttpPageContainer() {
     const [requestName, setRequestName] = useState("Unnamed");
 
     const methods = useForm<HttpRequest>({ defaultValues: defaultFormValues() });
+    const { path } = useStore();
+    const { getFile } = useFile();
 
     async function onSubmit(data: HttpRequest) {
         const { data: response, error: err } = await safe(invoke<HttpResponse>("send_request", {
@@ -50,6 +54,31 @@ export function HttpPageContainer() {
                 body: data.body.content || null,
             }
         }));
+    }
+
+    useEffect(() => {
+        if (path === null) {
+            return;
+        }
+
+        (async () => {
+            const response = await getFile(path);
+
+            if (response.error != null) {
+                return;
+            }
+            console.log(response.data);
+            methods.setValue("auth", response.data.auth);
+            methods.setValue("body", response.data.body ?? "");
+            methods.setValue("headers", []);
+            methods.setValue("method", response.data.method);
+            methods.setValue("params", []);
+            methods.setValue("url", response.data.url);
+        })();
+    }, [path]);
+
+    if (!path) {
+        return;
     }
 
     return (

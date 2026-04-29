@@ -1,6 +1,7 @@
 import { SplitPane } from "./components/split-pane";
 import { SideMenu } from "./layout/side-menu";
 import { HttpPageContainer } from "./modules/http-page";
+import { AppState } from "./store/app-store";
 
 function App() {
 
@@ -10,12 +11,14 @@ function App() {
   // }
 
   return (
-    <main className="container">
-      <SplitPane>
-        <SideMenu />
-        <HttpPageContainer />
-      </SplitPane>
-    </main>
+    <AppState>
+      <main className="container">
+        <SplitPane>
+          <SideMenu />
+          <HttpPageContainer />
+        </SplitPane>
+      </main>
+    </AppState>
   );
 }
 
