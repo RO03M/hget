@@ -1,5 +1,7 @@
+@url=https://jsonplaceholder.typicode.com
+
 ### Get users
-GET https://jsonplaceholder.typicode.com/users
+GET {{HostAddress}}/users?name=John
 Accept: application/json
 
 ### Create user

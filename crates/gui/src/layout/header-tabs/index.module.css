@@ -1,0 +1,18 @@
+.tab {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 4px;
+    border: 1px solid var(--color-border-muted);
+    user-select: none;
+    -webkit-user-drag: none;
+    cursor: pointer;
+    background-color: var(--color-background);
+    border-radius: 7px;
+}
+
+.tab.active {
+    background-color: var(--color-bg-active);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+}

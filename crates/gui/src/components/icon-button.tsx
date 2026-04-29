@@ -7,7 +7,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function IconButton(props: Props) {
-    const { size = 28 } = props;
+    const { size = 24 } = props;
     
     return (
         <button

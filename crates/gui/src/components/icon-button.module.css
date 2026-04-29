@@ -5,4 +5,18 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    background-color: var(--color-bg-elevated);
+    border-radius: 7px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+}
+
+.icon-button:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border);
+}
+
+.icon-button:active {
+    background-color: var(--color-bg-active);
 }
