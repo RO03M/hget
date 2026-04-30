@@ -1,5 +1,4 @@
 export interface KeyValueRow {
-    id: string;
     enabled: boolean;
     name: string;
     value: string;
@@ -25,7 +24,7 @@ export interface HttpRequest {
 }
 
 export function emptyRow(): KeyValueRow {
-    return { id: crypto.randomUUID(), enabled: true, name: "", value: "" };
+    return { enabled: true, name: "", value: "" };
 }
 
 export function defaultFormValues(): HttpRequest {

@@ -21,7 +21,7 @@ export function KeyValueTable({ name }: Props) {
                 </div>
 
                 {fields.map((field, index) => (
-                    <div key={field.id} className={styles.row}>
+                    <div key={`${field.name}-${index}-${field.value}`} className={styles.row}>
                         <span className={styles.colCheck}>
                             <input
                                 type="checkbox"
