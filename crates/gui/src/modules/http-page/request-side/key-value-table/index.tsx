@@ -1,5 +1,5 @@
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { HttpRequest, emptyRow } from "../types";
+import { RequestFormHttpRequest, emptyRow } from "../types";
 import styles from "./key-value-table.module.css";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 }
 
 export function KeyValueTable({ name }: Props) {
-    const { register, control } = useFormContext<HttpRequest>();
+    const { register, control } = useFormContext<RequestFormHttpRequest>();
     const { fields, append, remove } = useFieldArray({ control, name });
 
     return (

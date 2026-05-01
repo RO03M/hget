@@ -6,7 +6,7 @@ export interface KeyValueRow {
 
 export type BodyType = "json";
 
-export interface HttpRequest {
+export interface RequestFormHttpRequest {
     method: string;
     url: string;
     params: KeyValueRow[];
@@ -27,7 +27,7 @@ export function emptyRow(): KeyValueRow {
     return { enabled: true, name: "", value: "" };
 }
 
-export function defaultFormValues(): HttpRequest {
+export function defaultFormValues(): RequestFormHttpRequest {
     return {
         method: "GET",
         url: "",

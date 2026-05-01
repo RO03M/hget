@@ -1,10 +1,10 @@
 import { useFormContext, useWatch } from "react-hook-form";
-import { HttpRequest } from "../types";
+import { RequestFormHttpRequest } from "../types";
 import styles from "./auth-tab.module.css";
 
 export function AuthTab() {
-    const { register } = useFormContext<HttpRequest>();
-    const authType = useWatch<HttpRequest, "auth.type">({ name: "auth.type" });
+    const { register } = useFormContext<RequestFormHttpRequest>();
+    const authType = useWatch<RequestFormHttpRequest, "auth.type">({ name: "auth.type" });
 
     return (
         <div className={styles.container}>

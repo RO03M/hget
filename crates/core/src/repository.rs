@@ -59,9 +59,11 @@ impl Repository {
     }
 
     pub fn save_http_file(&self, http_request: &HttpRequest, path: &PathBuf) -> anyhow::Result<()> {
-        let mut filename = slug::slugify(http_request.name.clone());
-        filename.push_str(".http");
-        let path = self.root.join(path).join(filename);
+        let path = path.strip_prefix("/").unwrap_or(&path);
+        let path = self.root.join(path);
+        println!("{} {}", path.to_str().unwrap(), self.root.to_str().unwrap());
+        fs::create_dir_all(path.parent().unwrap_or(Path::new("")))?;
+
 
         let _ = fs::write(path, http_request.to_string())?;
 

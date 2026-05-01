@@ -1,9 +1,9 @@
 import { Controller, useFormContext } from "react-hook-form";
-import { HttpRequest } from "../types";
+import { RequestFormHttpRequest } from "../types";
 import styles from "./body-tab.module.css";
 
 export function BodyTab() {
-    const { control } = useFormContext<HttpRequest>();
+    const { control } = useFormContext<RequestFormHttpRequest>();
 
     return (
         <div className={styles.container}>

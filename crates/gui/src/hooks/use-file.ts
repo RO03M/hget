@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useState } from "react";
 import { safe } from "../utils/safe";
-import { HttpRequest } from "../modules/http-page/request-side/types";
+import { HttpRequest } from "../types";
 
 export function useFile() {
     const [isLoading, setLoading] = useState(false);

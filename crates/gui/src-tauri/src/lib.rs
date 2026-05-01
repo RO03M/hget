@@ -1,11 +1,10 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Mutex};
 
 use hget_core::{executor::HttpResponse, helpers::{FSNode, list_http_tree}, http_request::HttpRequest, repository::Repository};
+use tauri::{Manager, State};
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+struct AppState {
+    repository: Repository
 }
 
 #[tauri::command]
@@ -16,19 +15,20 @@ async fn send_request(request: HttpRequest) -> Result<HttpResponse, String> {
 }
 
 #[tauri::command]
-async fn save_request(request: HttpRequest) {
-    let repository = Repository::new("./testemalandro".into());
-    repository.create_collection("teste");
-    repository.save_http_file(&request, &".".into());
+async fn save_request(state: State<'_, Mutex<AppState>>, request: HttpRequest, path: PathBuf) -> Result<(), String> {
+    let state = state.lock().map_err(|e| e.to_string())?;
+    let _ = state.repository.save_http_file(&request, &path);
+
+    Ok(())
 }
 
 #[tauri::command]
-async fn load_file(path: PathBuf) -> Result<HttpRequest, String> {
-    let repository = Repository::new("/home/romera/projects/hget/sample".into());
+async fn load_file(state: State<'_, Mutex<AppState>>, path: PathBuf) -> Result<HttpRequest, String> {
+    let state = state.lock().unwrap();
 
     let path = path.strip_prefix("/").unwrap_or(&path);
 
-    let http_request = repository.get_http_file(path)?;
+    let http_request = state.repository.get_http_file(path)?;
 
     return Ok(http_request);
 }
@@ -45,8 +45,14 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            app.manage(Mutex::new(AppState {
+                repository: Repository::new("/home/romera/projects/hget/sample".into())
+            }));
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
-            greet,
             send_request,
             save_request,
             get_tree,

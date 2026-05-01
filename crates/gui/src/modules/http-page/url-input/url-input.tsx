@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { IconButton } from "../../../components/icon-button";
 import { SendIcon } from "../../../icons/send-icon";
-import { HttpRequest, KeyValueRow } from "../request-side/types";
+import { RequestFormHttpRequest, KeyValueRow } from "../request-side/types";
 import { MethodSelect } from "./method-select";
 import styles from "./url-input.module.css";
 import { SaveIcon } from "../../../icons/save-icon";
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function UrlInput(props: Props) {
-    const { register, watch, getValues, setValue } = useFormContext<HttpRequest>();
+    const { register, watch, getValues, setValue } = useFormContext<RequestFormHttpRequest>();
     const params = watch("params");
 
     useEffect(() => {
