@@ -77,25 +77,28 @@ export function HttpPageContainer() {
                 return;
             }
 
-            const headers = response.data.headers.map(([key, value]) => ({
+            const httpRequest = response.data.http_request;
+
+            const headers = httpRequest.headers.map(([key, value]) => ({
                 enabled: true,
                 name: key,
                 value: value,
             }));
 
-            const rawParams = paramsFromUrl(response.data.url);
+            const rawParams = paramsFromUrl(httpRequest.url);
             const params = rawParams.map(([key, value]) => ({
                 enabled: true,
                 name: key,
                 value: value,
             }));
 
-            // methods.setValue("auth", response.data.auth);
-            methods.setValue("body", { type: "json", content: response.data.body ?? "" });
+            // methods.setValue("auth", httpRequest.auth);
+            methods.setValue("body", { type: "json", content: httpRequest.body ?? "" });
             methods.setValue("headers", headers);
-            methods.setValue("method", response.data.method);
+            methods.setValue("method", httpRequest.method);
             methods.setValue("params", params);
-            methods.setValue("url", response.data.url);
+            methods.setValue("url", httpRequest.url);
+            methods.setValue("rawHttp", response.data.raw_http ?? "");
         })();
     }, [activeTab]);
 
@@ -117,24 +120,14 @@ export function HttpPageContainer() {
                 <UrlInput
                     onSave={onSave}
                 />
-                <div
-                    style={{
-                        flex: 1,
-                        overflowY: "scroll"
-                    }}
+                <SplitPane
+                    max={1000}
                 >
-                    {/* {Array.from(Array(100).keys()).map(() => (
-                        <p>fill</p>
-                    ))} */}
-                    <SplitPane
-                        max={1000}
-                    >
-                        <RequestSide />
-                        <ResponseContainer
-                            response={response}
-                        />
-                    </SplitPane>
-                </div>
+                    <RequestSide />
+                    <ResponseContainer
+                        response={response}
+                    />
+                </SplitPane>
                 <span>{error}</span>
 
             </form>

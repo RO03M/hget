@@ -6,20 +6,22 @@ import { BodyTab } from "./tabs/body-tab";
 import { AuthTab } from "./tabs/auth-tab";
 import { KeyValueRow } from "./types";
 import styles from "./request-side.module.css";
+import { Tabs } from "../../../components/tabs";
+import { Tab } from "../../../components/tab";
 
-type Tab = "params" | "body" | "headers" | "auth";
+type TabId = "params" | "body" | "headers" | "auth";
 
 function countActive(rows: KeyValueRow[]): number {
     return rows.filter((r) => r.enabled && (r.name || r.value)).length;
 }
 
 export function RequestSide() {
-    const [activeTab, setActiveTab] = useState<Tab>("params");
+    const [activeTab, setActiveTab] = useState<TabId>("params");
 
     const params  = useWatch({ name: "params"  }) as KeyValueRow[];
     const headers = useWatch({ name: "headers" }) as KeyValueRow[];
 
-    const tabs: { id: Tab; label: string; badge?: number }[] = [
+    const tabs: { id: TabId; label: string; badge?: number }[] = [
         { id: "params",  label: "Params",  badge: countActive(params) },
         { id: "body",    label: "Body" },
         { id: "headers", label: "Headers", badge: countActive(headers) },
@@ -28,21 +30,19 @@ export function RequestSide() {
 
     return (
         <div className={styles.container}>
-            <div className={styles.tabBar}>
+            <Tabs
+                onChange={setActiveTab}
+                value={activeTab}
+                className={styles.tabBar}
+            >
                 {tabs.map((tab) => (
-                    <button
+                    <Tab
+                        label={tab.label}
                         key={tab.id}
-                        type="button"
-                        className={`${styles.tabBtn} ${activeTab === tab.id ? styles.tabBtnActive : ""}`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
-                        {tab.label}
-                        {!!tab.badge && (
-                            <span className={styles.badge}>{tab.badge}</span>
-                        )}
-                    </button>
+                        value={tab.id}
+                    />
                 ))}
-            </div>
+            </Tabs>
 
             <div className={styles.tabContent}>
                 {activeTab === "params"  && <ParamsTab />}

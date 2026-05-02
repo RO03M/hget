@@ -57,8 +57,8 @@ export function SplitPane(props: SplitPaneProps) {
             ref={containerRef}
             style={{
                 display: "flex",
-                width: "100%",
-                height: "100%"
+                // width: "100%",
+                // height: "100%"
             }}
         >
             <div
@@ -79,7 +79,7 @@ export function SplitPane(props: SplitPaneProps) {
                     style={{
                         width: 1,
                         background: "#ccc",
-                        height: "100%"
+                        // height: "100%"
                     }}
                 />
             </div>
@@ -87,7 +87,7 @@ export function SplitPane(props: SplitPaneProps) {
             <div
                 style={{
                     flex: 1,
-                    overflow: "auto",
+                    // overflow: "auto",
                 }}
             >
                 {right}

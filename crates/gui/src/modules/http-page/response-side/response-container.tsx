@@ -33,7 +33,7 @@ export function ResponseContainer(props: Props) {
             <div
                 style={{
                     overflowY: "scroll",
-                    height: "90%"
+                    height: "80vh"
                 }}
             >
                 {currentTab == "response" && (

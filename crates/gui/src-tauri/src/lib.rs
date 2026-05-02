@@ -1,7 +1,11 @@
+mod commands;
+
 use std::{path::PathBuf, sync::Mutex};
 
 use hget_core::{executor::HttpResponse, helpers::{FSNode, list_http_tree}, http_request::HttpRequest, repository::Repository};
 use tauri::{Manager, State};
+
+use crate::commands::load_file;
 
 struct AppState {
     repository: Repository
@@ -20,17 +24,6 @@ async fn save_request(state: State<'_, Mutex<AppState>>, request: HttpRequest, p
     let _ = state.repository.save_http_file(&request, &path);
 
     Ok(())
-}
-
-#[tauri::command]
-async fn load_file(state: State<'_, Mutex<AppState>>, path: PathBuf) -> Result<HttpRequest, String> {
-    let state = state.lock().unwrap();
-
-    let path = path.strip_prefix("/").unwrap_or(&path);
-
-    let http_request = state.repository.get_http_file(path)?;
-
-    return Ok(http_request);
 }
 
 #[tauri::command]

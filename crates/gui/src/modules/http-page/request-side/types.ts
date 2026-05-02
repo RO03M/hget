@@ -21,6 +21,7 @@ export interface RequestFormHttpRequest {
         username: string;
         password: string;
     };
+    rawHttp?: string;
 }
 
 export function emptyRow(): KeyValueRow {

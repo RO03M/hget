@@ -11,12 +11,12 @@ impl Repository {
         return Self { root };
     }
 
-    pub fn get_http_file(&self, path: &Path) -> Result<HttpRequest, String> {
+    pub fn get_http_file(&self, path: &Path) -> Result<(HttpRequest, String), String> {
         let file = std::fs::read_to_string(self.root.join(path)).map_err(|e| e.to_string())?;
 
         let http_request = parse(&file).get(0).expect("Failed to parse http request").clone();
 
-        return Ok(http_request);
+        return Ok((http_request, file));
     }
 
     // acho que collection não faz sentido aqui, pq o repository é a própria collection

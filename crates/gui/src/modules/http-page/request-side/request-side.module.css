@@ -1,10 +1,8 @@
 .container {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    overflow: hidden;
 }
-
-/* Tab bar */
 
 .tabBar {
     display: flex;
@@ -53,7 +51,8 @@
 
 .tabContent {
     padding: 12px 0;
-    flex: 1;
     display: flex;
     flex-direction: column;
+    overflow-y: scroll;
+    height: 80vh;
 }
