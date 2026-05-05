@@ -1,4 +1,4 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{ffi::OsStr, fs, path::{Path, PathBuf}};
 
 use crate::{http_request::HttpRequest, parser::parse};
 
@@ -9,6 +9,12 @@ pub struct Repository {
 impl Repository {
     pub fn new(root: PathBuf) -> Self {
         return Self { root };
+    }
+
+    pub fn get_name(&self) -> String {
+        let dir_name = self.root.iter().last().unwrap_or(OsStr::new("")).to_string_lossy().into_owned();
+
+        return dir_name.strip_prefix("/").unwrap_or(&dir_name).to_string();
     }
 
     pub fn get_http_file(&self, path: &Path) -> Result<(HttpRequest, String), String> {

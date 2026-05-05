@@ -3,17 +3,17 @@ import { useEffect, useState } from "react";
 import { FSNode } from "../types";
 
 export function useFileTree() {
-    const [nodes, setNodes] = useState<FSNode[]>([]);
+    const [tree, setTree] = useState<FSNode | null>(null);
 
     useEffect(() => {
         (async () => {
-            const res = await invoke<FSNode[]>("get_tree");
+            const res = await invoke<FSNode>("get_tree");
             
-            setNodes(res);
+            setTree(res);
         })()
     }, []);
 
     return {
-        nodes
+        tree
     };
 }

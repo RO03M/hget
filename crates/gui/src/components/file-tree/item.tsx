@@ -3,6 +3,7 @@ import { FSNode } from "../../types";
 import { FileTree } from "./file-tree";
 import styles from "./file-tree.module.css";
 import { ArrowIcon } from "../../icons/arrow";
+import { DirSettingsButton } from "./dir-settings-button";
 
 interface Props {
     root: string;
@@ -40,7 +41,11 @@ export function Item(props: Props) {
                     paddingLeft: 14 * depth
                 }}
             >
-                {node.is_dir && <ArrowIcon rotation={collapsed ? 0 : 90} size={10} />}{node.name}
+                <div className={"row-centered gap-4"}>{node.is_dir && <ArrowIcon rotation={collapsed ? 0 : 90} size={10} />}{node.name}</div>
+                <DirSettingsButton
+                    node={props.node}
+                    path={path}
+                />
             </div>
             {!collapsed && node.is_dir && (
                 <FileTree

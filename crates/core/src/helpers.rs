@@ -11,9 +11,9 @@ pub fn is_http_file(path: &Path) -> bool {
 
 #[derive(Debug, Serialize)]
 pub struct FSNode {
-    name: String,
-    is_dir: bool,
-    children: Vec<FSNode>,
+    pub name: String,
+    pub is_dir: bool,
+    pub children: Vec<FSNode>,
 }
 
 pub fn list_http_tree(root: &Path) -> Vec<FSNode> {

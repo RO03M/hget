@@ -45,3 +45,13 @@ tr:last-child td {
 tr:hover {
     background: var(--color-bg-active);
 }
+
+.row-centered {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+}
+
+.gap-4 {
+    gap: 4px;
+}

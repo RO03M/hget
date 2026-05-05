@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes } from "react";
+import { ButtonHTMLAttributes, ForwardedRef, forwardRef } from "react";
 
 import styles from "./icon-button.module.css";
 
@@ -6,12 +6,13 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
     size?: number;
 }
 
-export function IconButton(props: Props) {
+export const IconButton = forwardRef((props: Props, ref: ForwardedRef<HTMLButtonElement>) => {
     const { size = 24 } = props;
     
     return (
         <button
             type={"button"}
+            ref={ref}
             {...props}
             className={[props.className, styles["icon-button"]].join(" ")}
             style={{
@@ -22,4 +23,4 @@ export function IconButton(props: Props) {
             {props.children}
         </button>
     )
-}
+});

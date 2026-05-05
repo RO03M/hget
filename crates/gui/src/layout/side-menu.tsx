@@ -4,7 +4,7 @@ import { useStore } from "../store/app-store";
 import { useTabs } from "../store/use-tabs";
 
 export function SideMenu() {
-    const { nodes } = useFileTree();
+    const { tree } = useFileTree();
     const { setPath } = useStore();
     const { add } = useTabs();
 
@@ -13,10 +13,14 @@ export function SideMenu() {
         add(path);
     }
 
+    if (!tree) {
+        return null;
+    }
+
     return (
         <div>
             <FileTree
-                nodes={nodes}
+                nodes={[tree]}
                 root={""}
                 onClick={handleClick}
             />
