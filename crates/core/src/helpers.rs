@@ -45,7 +45,6 @@ fn build_dir(path: &Path) -> Vec<FSNode> {
                 is_dir: true,
                 children,
             });
-
         } else if crate::helpers::is_http_file(&path) {
             nodes.push(FSNode {
                 name,
@@ -56,6 +55,30 @@ fn build_dir(path: &Path) -> Vec<FSNode> {
     }
 
     nodes
+}
+
+pub fn slugify(s: &str) -> String {
+    s.chars()
+        .map(|c| match c {
+            'a'..='z' | '0'..='9' => c,
+            'A'..='Z' => c.to_ascii_lowercase(),
+            ' ' | '-' | '_' => '-',
+            'á' | 'à' | 'â' | 'ã' | 'ä' => 'a',
+            'é' | 'è' | 'ê' | 'ë' => 'e',
+            'í' | 'ì' | 'î' | 'ï' => 'i',
+            'ó' | 'ò' | 'ô' | 'õ' | 'ö' => 'o',
+            'ú' | 'ù' | 'û' | 'ü' => 'u',
+            'ç' => 'c',
+            'ñ' => 'n',
+            _ => '\0',
+        })
+        .collect::<String>()
+        .split('-')
+        .filter(|seg| !seg.is_empty())
+        .collect::<Vec<_>>()
+        .join("-")
+        .trim_matches('-')
+        .to_string()
 }
 
 #[cfg(test)]
@@ -75,7 +98,7 @@ mod tests {
         std::fs::write(dir.path().join("folder/a/file.http"), "").unwrap();
         std::fs::write(dir.path().join("folder/a/file"), "").unwrap();
         std::fs::write(dir.path().join("file"), "").unwrap();
-        
+
         let nodes = list_http_tree(dir.path());
 
         println!("{:?}", nodes);

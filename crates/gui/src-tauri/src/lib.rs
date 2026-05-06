@@ -4,13 +4,12 @@ use std::{path::PathBuf, sync::Mutex};
 
 use hget_core::{
     executor::HttpResponse,
-    helpers::{FSNode},
     http_request::HttpRequest,
     repository::Repository,
 };
 use tauri::{Manager, State};
 
-use crate::commands::{get_tree, load_file};
+use crate::commands::{get_tree, load_file, create_empty_file};
 
 struct AppState {
     repository: Repository,
@@ -51,7 +50,8 @@ pub fn run() {
             send_request,
             save_request,
             get_tree,
-            load_file
+            load_file,
+            create_empty_file
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

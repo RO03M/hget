@@ -1,0 +1,31 @@
+.default {
+    all: unset;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    color: var(--color-text);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 5px 8px;
+    box-sizing: border-box;
+    width: 100%;
+    transition: border-color 100ms ease;
+}
+
+.default::placeholder {
+    color: var(--color-text-disabled);
+}
+
+.default:focus {
+    border-color: var(--color-accent);
+    outline: none;    
+}
+
+.default.error {
+    border-color: var(--color-error) !important;
+    color: var(--color-error) !important;
+}
+
+span.error {
+    color: var(--color-error);
+}

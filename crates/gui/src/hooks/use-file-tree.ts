@@ -1,16 +1,11 @@
-import { invoke } from "@tauri-apps/api/core";
-import { useEffect, useState } from "react";
-import { FSNode } from "../types";
+import { useEffect } from "react";
+import { useTreeStore } from "./use-tree-store";
 
 export function useFileTree() {
-    const [tree, setTree] = useState<FSNode | null>(null);
+    const { tree, refresh } = useTreeStore();
 
     useEffect(() => {
-        (async () => {
-            const res = await invoke<FSNode>("get_tree");
-            
-            setTree(res);
-        })()
+        refresh();
     }, []);
 
     return {

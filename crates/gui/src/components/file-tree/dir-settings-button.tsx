@@ -5,6 +5,7 @@ import { Popper } from "../popper";
 import { MenuList } from "../menu/menu-list";
 import { MenuItem } from "../menu/menu-item";
 import { FSNode } from "../../types";
+import { CreateRequestModal } from "../create-request/create-request";
 
 interface Props {
     node: FSNode;
@@ -13,10 +14,12 @@ interface Props {
 
 export function DirSettingsButton(props: Props) {
     const [open, setOpen] = useState(false);
+    const [createRequestModal, setCreateRequestModal] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
     const createNewRequest = useCallback(() => {
         console.log(props.path);
+        setCreateRequestModal(true);
     }, [props.path]);
 
     return (
@@ -44,6 +47,11 @@ export function DirSettingsButton(props: Props) {
                     <MenuItem>Delete</MenuItem>
                 </MenuList>
             </Popper>
+            <CreateRequestModal
+                path={props.path}
+                open={createRequestModal}
+                onClose={() => setCreateRequestModal(false)}
+            />
         </>
     );
 }
