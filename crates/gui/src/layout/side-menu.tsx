@@ -20,7 +20,7 @@ export function SideMenu() {
     return (
         <div>
             <FileTree
-                nodes={[tree]}
+                nodes={tree}
                 root={""}
                 onClick={handleClick}
             />

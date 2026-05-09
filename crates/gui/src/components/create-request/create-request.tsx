@@ -40,7 +40,7 @@ export function CreateRequestModal(props: Props) {
             open={props.open}
             onClose={props.onClose}
         >
-            <NewRequestHeader />
+            <NewRequestHeader onClose={props.onClose} />
             <form
                 className={styles["create-req-form"]}
                 onSubmit={handleSubmit(onSubmit)}
@@ -65,7 +65,13 @@ export function CreateRequestModal(props: Props) {
                         gap: 8,
                     }}
                 >
-                    <Button variant="text" type="button">Cancelar</Button>
+                    <Button
+                        variant="text"
+                        type="button"
+                        onClick={props.onClose}
+                    >
+                        Cancelar
+                    </Button>
                     <Button type="submit">Criar</Button>
                 </div>
             </form>
