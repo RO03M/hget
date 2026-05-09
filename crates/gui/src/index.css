@@ -46,6 +46,15 @@ tr:hover {
     background: var(--color-bg-active);
 }
 
+button {
+    all: unset;
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
 .row-centered {
     display: flex;
     align-items: center;

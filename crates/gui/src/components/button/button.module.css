@@ -1,0 +1,22 @@
+.contained {
+    background-color: var(--primary);
+}
+
+.text {
+    background-color: transparent;
+}
+
+.text:hover {
+    background-color: var(--color-text-muted);
+}
+
+.outlined {
+    border: 1px solid var(--primary);
+}
+
+.button {
+    border-radius: 7px;
+    padding: 8px;
+    transition: background-color 150ms ease;
+    cursor: pointer;
+}

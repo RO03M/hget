@@ -3,7 +3,14 @@ import { Dialog } from "../dialog";
 import { TextField } from "../textfield/textfield";
 import styles from "./create-request.module.css";
 import { Button } from "../button";
-import { invoke } from "@tauri-apps/api/core";
+import { NewRequestHeader } from "./header";
+import { saveRequest } from "../../requests/save_request";
+import { join } from "@tauri-apps/api/path";
+
+interface CreateRequestForm {
+    request_name: string;
+    url: string;
+}
 
 interface Props {
     path: string;
@@ -12,15 +19,20 @@ interface Props {
 }
 
 export function CreateRequestModal(props: Props) {
-    const { handleSubmit, register } = useForm();
+    const { handleSubmit, register } = useForm<CreateRequestForm>();
 
-    const onSubmit = async (data: any) => {
-        console.log(props);
+    const onSubmit = async (data: CreateRequestForm) => {
+        const path = await join(props.path, `${data.request_name}.http`);
 
-        await invoke("create_empty_file", {
-            parentPath: props.path,
-            requestName: data.request_name
-        });
+        console.log("Creating new request at", path, " with ", data);
+
+        await saveRequest({
+            body: null,
+            headers: [],
+            method: "GET",
+            name: data.request_name,
+            url: data.url,
+        }, path);
     }
 
     return (
@@ -28,14 +40,34 @@ export function CreateRequestModal(props: Props) {
             open={props.open}
             onClose={props.onClose}
         >
+            <NewRequestHeader />
             <form
                 className={styles["create-req-form"]}
                 onSubmit={handleSubmit(onSubmit)}
             >
+                <label>Request Name</label>
                 <TextField
+                    placeholder={"Request Name"}
                     {...register("request_name")}
                 />
-                <Button type="submit">Criar</Button>
+                <br/>
+                <label>URL</label>
+                <TextField
+                    placeholder={"URL"}
+                    {...register("url")}
+                />
+
+                <div
+                    style={{
+                        marginTop: 8,
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 8,
+                    }}
+                >
+                    <Button variant="text" type="button">Cancelar</Button>
+                    <Button type="submit">Criar</Button>
+                </div>
             </form>
         </Dialog>
     );
