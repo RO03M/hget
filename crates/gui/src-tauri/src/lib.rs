@@ -9,7 +9,7 @@ use hget_core::{
 };
 use tauri::{Manager, State};
 
-use crate::commands::{get_tree, load_file, create_empty_file};
+use crate::commands::{get_tree, load_file, create_empty_file, create_dir_command};
 
 struct AppState {
     repository: Repository,
@@ -51,7 +51,8 @@ pub fn run() {
             save_request,
             get_tree,
             load_file,
-            create_empty_file
+            create_empty_file,
+            create_dir_command
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

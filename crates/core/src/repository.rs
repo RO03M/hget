@@ -26,8 +26,16 @@ impl Repository {
     }
 
     // acho que collection não faz sentido aqui, pq o repository é a própria collection
-    pub fn create_collection(&self, name: &str) -> Result<(), ()> {
-        let _ = fs::create_dir_all(self.root.join(name));
+    pub fn create_dir(&self, path: PathBuf) -> Result<(), String> {
+        let path = path.strip_prefix("/").unwrap();
+
+        if path.is_absolute() {
+            return Err("absolute paths are not allowed".into());
+        }
+
+        let path = self.root.join(path);
+
+        fs::create_dir_all(path).map_err(|e| e.to_string())?;
 
         return Ok(());
     }
@@ -56,12 +64,6 @@ impl Repository {
         }
 
         return files;
-    }
-
-    pub fn create_folder(&self, path: PathBuf) -> anyhow::Result<()> {
-        let _ = fs::create_dir_all(self.root.join(path));
-
-        Ok(())
     }
 
     pub fn save_http_file(&self, http_request: &HttpRequest, path: &PathBuf) -> anyhow::Result<()> {
@@ -129,7 +131,7 @@ mod tests {
     #[test]
     fn create_and_list_collection() {
         let (repo, _dir) = repo();
-        repo.create_collection("auth").unwrap();
+        repo.create_dir("auth".into()).unwrap();
 
         let collections = repo.list_collections();
 
@@ -140,9 +142,9 @@ mod tests {
     fn create_and_find_http_files() {
         let (repo, _dir) = repo();
 
-        let _ = repo.create_folder("auth/custom".into());
-        let _ = repo.create_folder("users".into());
-        let _ = repo.create_folder("features".into());
+        let _ = repo.create_dir("auth/custom".into());
+        let _ = repo.create_dir("users".into());
+        let _ = repo.create_dir("features".into());
 
         let http_request = dummy_http_request();
 

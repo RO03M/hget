@@ -18,12 +18,10 @@ export function SideMenu() {
     }
 
     return (
-        <div>
-            <FileTree
-                nodes={tree}
-                root={""}
-                onClick={handleClick}
-            />
-        </div>
-    )
+        <FileTree
+            nodes={tree}
+            root={""}
+            onClick={handleClick}
+        />
+    );
 }

@@ -7,5 +7,5 @@ export async function saveRequest(request: HttpRequest, path: string) {
     await safe(invoke("save_request", {
         path: path,
         request: request
-    }))
+    }));
 }

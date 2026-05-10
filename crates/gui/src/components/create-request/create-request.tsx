@@ -4,8 +4,9 @@ import { TextField } from "../textfield/textfield";
 import styles from "./create-request.module.css";
 import { Button } from "../button";
 import { NewRequestHeader } from "./header";
-import { saveRequest } from "../../requests/save_request";
+import { saveRequest } from "../../repository/requests";
 import { join } from "@tauri-apps/api/path";
+import { useTreeStore } from "../../hooks/use-tree-store";
 
 interface CreateRequestForm {
     request_name: string;
@@ -20,6 +21,7 @@ interface Props {
 
 export function CreateRequestModal(props: Props) {
     const { handleSubmit, register } = useForm<CreateRequestForm>();
+    const { refresh } = useTreeStore();
 
     const onSubmit = async (data: CreateRequestForm) => {
         const path = await join(props.path, `${data.request_name}.http`);
@@ -33,6 +35,10 @@ export function CreateRequestModal(props: Props) {
             name: data.request_name,
             url: data.url,
         }, path);
+
+        await refresh();
+
+        props.onClose();
     }
 
     return (

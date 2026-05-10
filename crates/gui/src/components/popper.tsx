@@ -1,17 +1,38 @@
-import { ReactNode, useRef } from "react";
+import { ReactNode, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 
 interface Props extends React.ComponentProps<"div"> {
     open: boolean;
     children: ReactNode;
-    anchor: HTMLElement | null;
+    anchor?: HTMLElement | null;
+    anchorPosition?: { top: number, left: number };
     onClose: () => void;
 }
 
 export function Popper(props: Props) {
+    const { anchor, anchorPosition, onClose, open, children, ...rest } = props;
+
     const containerRef = useRef<HTMLDivElement>(null);
 
-    if (!props.open) {
+    const coords = useMemo(() => {
+        if (anchor) {
+            return {
+                top: anchor.getBoundingClientRect().bottom + window.scrollY,
+                left: anchor.getBoundingClientRect().left + window.scrollX,
+            };
+        }
+
+        if (anchorPosition) {
+            return {
+                top: anchorPosition.top,
+                left: anchorPosition.left,
+            };
+        }
+
+        return { top: 0, left: 0 };
+    }, [anchor, anchorPosition]);
+
+    if (!open) {
         return null;
     }
 
@@ -20,16 +41,12 @@ export function Popper(props: Props) {
         return null;
     }
 
-    if (!props.anchor) {
-        return null;
-    }
-
     return createPortal(
         <div
             aria-description="popper presentation"
             onClick={(e) => {
                 e.stopPropagation();
-                props.onClose();
+                onClose();
             }}
             style={{
                 position: "fixed",
@@ -40,16 +57,20 @@ export function Popper(props: Props) {
             }}
         >
             <div
+                {...rest}
                 ref={containerRef}
-                {...props}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    rest.onClick?.(e);
+                }}
                 style={{
                     position: "absolute",
-                    top: props.anchor.getBoundingClientRect().bottom + window.scrollY,
-                    left: props.anchor.getBoundingClientRect().left + window.scrollX,
+                    top: coords.top,
+                    left: coords.left,
                     zIndex: 1000,
                 }}
             >
-                {props.children}
+                {children}
             </div>
         </div>,
         document.body

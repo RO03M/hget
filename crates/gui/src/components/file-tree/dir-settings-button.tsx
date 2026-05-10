@@ -1,11 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ThreeDotsIcon } from "../../icons/three-dots";
 import { IconButton } from "../icon-button";
-import { Popper } from "../popper";
-import { MenuList } from "../menu/menu-list";
-import { MenuItem } from "../menu/menu-item";
 import { FSNode } from "../../types";
-import { CreateRequestModal } from "../create-request/create-request";
+import { FolderContextMenu } from "./folder-context-menu";
 
 interface Props {
     node: FSNode;
@@ -14,13 +11,7 @@ interface Props {
 
 export function DirSettingsButton(props: Props) {
     const [open, setOpen] = useState(false);
-    const [createRequestModal, setCreateRequestModal] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
-
-    const createNewRequest = useCallback(() => {
-        console.log(props.path);
-        setCreateRequestModal(true);
-    }, [props.path]);
 
     return (
         <>
@@ -34,23 +25,11 @@ export function DirSettingsButton(props: Props) {
             >
                 <ThreeDotsIcon size={16}/>
             </IconButton>
-            <Popper
+            <FolderContextMenu
                 open={open}
-                anchor={buttonRef.current}
-                onClose={() => {
-                    setOpen(false);
-                }}
-            >
-                <MenuList>
-                    <MenuItem onClick={createNewRequest}>New Request</MenuItem>
-                    <MenuItem>New Folder</MenuItem>
-                    <MenuItem>Delete</MenuItem>
-                </MenuList>
-            </Popper>
-            <CreateRequestModal
                 path={props.path}
-                open={createRequestModal}
-                onClose={() => setCreateRequestModal(false)}
+                onClose={() => setOpen(false)}
+                anchor={buttonRef.current}
             />
         </>
     );
