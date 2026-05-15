@@ -3,6 +3,7 @@ members = [
     "crates/core",
     "crates/cli",
     "crates/gui/src-tauri",
+    "crates/ui",
 ]
 resolver = "2"
 
@@ -14,9 +15,6 @@ overflow-checks = true
 [workspace.dependencies]
 # async runtime
 tokio = { version = "1", features = ["full"] }
-
-# http
-reqwest = { version = "0.12", features = ["json", "stream"] }
 
 # serialization
 serde = { version = "1", features = ["derive"] }

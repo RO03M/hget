@@ -42,3 +42,5 @@ clean:
 
 install: build-release
 	cp target/release/hget ~/.local/bin/hget
+ui:
+	cargo run -p ui
