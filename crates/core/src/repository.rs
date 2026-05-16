@@ -2,6 +2,7 @@ use std::{ffi::OsStr, fs, path::{Path, PathBuf}};
 
 use crate::{http_request::HttpRequest, parser::parse};
 
+#[derive(Debug, Clone)]
 pub struct Repository {
     pub root: PathBuf,
 }
