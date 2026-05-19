@@ -2,7 +2,7 @@ use gpui::*;
 use gpui_component::{Root, h_flex, list::ListItem, tree::{TreeItem, TreeState}};
 use hget_core::helpers::list_http_tree;
 use rfd::FileDialog;
-use ui::{dir_picker, repository_tree, state};
+use ui::{app::run_app, dir_picker, repository_tree, state};
 
 struct HgetUI {
     tree_state: Entity<TreeState>,
@@ -38,27 +38,5 @@ impl Render for HgetUI {
 }
 
 fn main() {
-    let app = gpui_platform::application();
-
-    app.run(move |cx| {
-        gpui_component::init(cx);
-
-        let global_state = state::State::new();
-        cx.set_global(global_state);
-
-        // let repository = cx.global::<state::State>().repository.clone();
-
-        // let tree = list_http_tree(&repository.root);
-
-        // println!("{:?}", tree);
-
-        cx.spawn(async move |cx| {
-            let _ = cx.open_window(WindowOptions::default(), |window, cx| {
-                let view = cx.new(|cx| HgetUI::new(window, cx));
-
-                return cx.new(|cx| Root::new(view, window, cx));
-            });
-        })
-        .detach();
-    });
+    run_app(gpui_platform::application());
 }
