@@ -4,6 +4,7 @@ use gpui_component::{
     input::{Input, InputState},
     select::{SearchableVec, Select, SelectState},
 };
+use hget_core::http_request::HttpRequest;
 
 pub struct UrlInput {
     input_state: Entity<InputState>,
@@ -46,14 +47,35 @@ impl UrlInput {
             url: "".into(),
         }
     }
+
+    pub fn on_request_change(&self, window: &mut Window, cx: &mut Context<Self>, http_request: Option<HttpRequest>) {
+        let (url, method) = if let Some(http_request) = http_request.clone() {
+            (http_request.url, http_request.method)
+        } else {
+            ("".into(), "".into())
+        };
+
+        self.input_state.update(cx, |state, cx| {
+            state.set_value(url, window, cx);
+        });
+
+        self.select_state.update(cx, |state, cx| {
+            state.set_selected_value(&method.into(), window, cx);
+        });
+    }
+
+    pub fn get_url(&self, cx: &App) -> SharedString {
+        return self.input_state.read(cx).value();
+    }
+
+    pub fn get_method(&self, cx: &App) -> SharedString {
+        return self.select_state.read(cx).selected_value().unwrap_or(&"".into()).clone();
+    }
 }
 
 impl Render for UrlInput {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        println!("{:?}", self.select_state.read(cx).selected_value());
-
         div().flex().w_full().child(
-            // Wrapping everything inside a single unified boundary container
             div()
                 .flex()
                 .flex_row()

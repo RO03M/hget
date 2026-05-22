@@ -1,7 +1,7 @@
-use std::str::FromStr;
 use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 use crate::executor::HttpResponse;
 
@@ -15,6 +15,26 @@ pub struct HttpRequest {
 }
 
 impl HttpRequest {
+    pub fn new(url: impl Into<String>, method: impl Into<String>) -> Self {
+        Self {
+            body: None,
+            headers: vec![],
+            method: method.into(),
+            url: url.into(),
+            name: "".into(),
+        }
+    }
+
+    pub fn set_headers(
+        &mut self,
+        headers: impl IntoIterator<Item = (impl Into<String>, impl Into<String>)>,
+    ) {
+        self.headers = headers
+            .into_iter()
+            .map(|(key, value)| (key.into(), value.into()))
+            .collect();
+    }
+
     pub fn to_string(&self) -> String {
         let mut result = format!("{} {}\n", self.method, self.url);
 

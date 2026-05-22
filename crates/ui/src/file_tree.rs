@@ -2,7 +2,7 @@ use gpui::*;
 use gpui_component::{h_flex, list::ListItem, tree::{tree, TreeItem, TreeState}};
 use hget_core::helpers::{FSNode, list_http_tree};
 
-use crate::state;
+use crate::state::{self, State};
 
 pub fn convert_fs_nodes(nodes: &Vec<FSNode>) -> Vec<TreeItem> {
     // Start with an empty base parent path
@@ -30,15 +30,6 @@ fn map_nodes_recursive(nodes: &Vec<FSNode>, parent_path: &str) -> Vec<TreeItem> 
                 for child in converted_children {
                     item = item.child(child);
                 }
-
-                /*
-                NOTE: If your TreeItem struct allows direct vector assignments instead,
-                you can replace the loop above with either of these:
-
-                item.children = converted_children;
-                // OR if it's a builder method:
-                item = item.children(converted_children);
-                */
             }
 
             item
@@ -64,14 +55,37 @@ impl FileTree {
             tree_state: cx.new(|cx| TreeState::new(cx).items(tree_items)),
         }
     }
+
+    fn on_select_path(&self, cx: &mut App, path: SharedString) {
+        cx.update_global::<State, _>(|state, _cx| {
+            state.active_path = Some(path);
+        });
+    }
 }
 
 impl Render for FileTree {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let entity = cx.entity().clone();
+
         return div()
             .size_full()
-            .child(tree(&self.tree_state, |ix, entry, selected, window, cx| {
-                ListItem::new(ix).child(h_flex().gap_2().child(entry.item().label.clone()))
+            .child(tree(&self.tree_state, move |ix, entry, selected, window, cx| {
+                let path = entry.item().id.clone();
+
+                ListItem::new(ix)
+                    .child(h_flex()
+                    .gap_2()
+                    .child(entry.item().label.clone()))
+                    .on_click({
+                        let value = entity.clone();
+                        move |event, window, cx| {
+                            let path = path.clone();
+                            value.update(cx, move |this, cx| {
+                                this.on_select_path(cx, path);
+                            });
+                        }
+                    })
+                
             }));
     }
 }

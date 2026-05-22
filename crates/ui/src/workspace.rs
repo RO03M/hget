@@ -1,5 +1,9 @@
+use gpui::prelude::FluentBuilder;
 use gpui::*;
-use gpui_component::{Root, resizable::{h_resizable, resizable_panel}};
+use gpui_component::{
+    Root,
+    resizable::{h_resizable, resizable_panel},
+};
 
 use crate::{file_tree::FileTree, request_pane::RequestPane, response_pane::ResponsePane};
 
@@ -12,7 +16,7 @@ pub fn build_workspace_view(window: &mut Window, cx: &mut App) -> Entity<Root> {
 pub struct Workspace {
     file_tree: Entity<FileTree>,
     request_pane: Entity<RequestPane>,
-    response_pane: Entity<ResponsePane>
+    response_pane: Entity<ResponsePane>,
 }
 
 impl Workspace {
@@ -25,29 +29,20 @@ impl Workspace {
     }
 }
 
-impl Render for Workspace  {
+impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        return h_resizable("main-resizable")
+        let notification_layer = Root::render_notification_layer(window, cx);
+
+        return div()
+            .size_full()
             .child(
-                resizable_panel()
-                    .child(self.file_tree.clone())
+                h_resizable("main-resizable")
+                    .child(resizable_panel().child(self.file_tree.clone()))
+                    .child(resizable_panel().child(self.request_pane.clone()))
+                    .child(resizable_panel().child(self.response_pane.clone())),
             )
-            .child(
-                resizable_panel()
-                    .child(self.request_pane.clone())
-            )
-            .child(
-                resizable_panel()
-                    .child(self.response_pane.clone())
-            )
-        // return div()
-        //     .size_full()
-        //     .flex()
-        //     .flex_row()
-        //     .bg(rgb(0x77ffff))
-        //     .justify_between()
-        //     .child(self.file_tree.clone())
-        //     .child(self.request_pane.clone())
-        //     .child(self.response_pane.clone());
+            .when(notification_layer.is_some(), |this| {
+                this.child(notification_layer.unwrap())
+            });
     }
 }

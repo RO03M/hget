@@ -9,4 +9,4 @@ pub mod request_pane;
 pub mod response_pane;
 pub mod file_tree;
 pub mod tab;
-pub mod url_input;
+pub mod components;
