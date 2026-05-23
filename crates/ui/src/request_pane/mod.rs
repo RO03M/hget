@@ -9,10 +9,13 @@ use gpui_component::{
     notification::NotificationType,
     tab::{Tab, TabBar},
 };
-use hget_core::http_request::HttpRequest;
+use hget_core::http_request::{self, HttpRequest};
 
 use crate::{
-    request_pane::{content::Content, url_input::UrlInput},
+    request_pane::{
+        content::Content,
+        url_input::{SendRequestEvent, UrlInput},
+    },
     state::State,
 };
 
@@ -30,6 +33,32 @@ pub struct RequestPane {
 impl RequestPane {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
         let url_input = cx.new(|cx| UrlInput::new(window, cx));
+        let url_input_sub = cx.subscribe(&url_input, |this, _, _: &SendRequestEvent, cx| {
+            let http_request = this.make_current_http_request(cx);
+            let rt = tokio::runtime::Runtime::new().unwrap();
+
+            println!("Firing http request");
+            cx.spawn(async move |weak_this: WeakEntity<RequestPane>, mut cx| {
+                let result = cx
+                    .background_executor()
+                    .spawn(async move {
+                        return rt.block_on(async {
+                            http_request.run().await
+                        });
+                    }).await;
+
+                println!("result: {:?}", result);
+
+                // weak_this
+                //     .update(&mut cx, |this, cx| {
+                //         cx.notify();
+                //     })
+                //     .ok();
+            })
+            .detach();
+        println!("after");
+        });
+
         let content = cx.new(|cx| Content::new(window, cx));
 
         let subscription = cx.observe_global::<State>(|this, cx| {
@@ -42,7 +71,7 @@ impl RequestPane {
         Self {
             url_input,
             content,
-            _subscriptions: vec![subscription],
+            _subscriptions: vec![subscription, url_input_sub],
             pending_update: true,
             http_request: None,
             focus_handle: cx.focus_handle(),
@@ -53,14 +82,30 @@ impl RequestPane {
         let state = cx.global::<State>();
 
         let repository = state.repository.clone().unwrap();
-        let (http_request, raw) = repository
-            .get_http_file(&std::path::Path::new(
-                &state.active_path.clone().unwrap().to_string(),
-            ))
-            .unwrap();
 
-        self.http_request = Some(http_request);
+        if let Ok((http_request, raw)) = repository.get_http_file(&std::path::Path::new(
+            &state.active_path.clone().unwrap().to_string(),
+        )) {
+            self.http_request = Some(http_request);
+        } else {
+            self.http_request = None;
+        }
+
         cx.notify();
+    }
+
+    /// builds an HttpRequest struct based on the current state
+    pub fn make_current_http_request(&self, cx: &mut Context<Self>) -> HttpRequest {
+        let url_input = self.url_input.read(cx);
+
+        let url = url_input.get_url(cx);
+        let method = url_input.get_method(cx);
+        let headers = self.content.read(cx).get_headers(cx);
+
+        let mut http_request = HttpRequest::new(url, method);
+        http_request.set_headers(headers);
+
+        return http_request;
     }
 
     pub fn on_save(&self, window: &mut Window, cx: &mut Context<Self>) {
@@ -91,10 +136,7 @@ impl RequestPane {
                 cx,
             );
         } else {
-            window.push_notification(
-                (NotificationType::Error, "Something went wrong"),
-                cx,
-            );
+            window.push_notification((NotificationType::Error, "Something went wrong"), cx);
         }
 
         println!("{:?}", http_request);
@@ -122,7 +164,6 @@ impl Render for RequestPane {
             .track_focus(&self.focus_handle)
             .flex_col()
             .flex_1()
-            .bg(rgb(0x0000ff))
             .on_action(cx.listener(|this, _: &Save, window, cx| {
                 this.on_save(window, cx);
             }))

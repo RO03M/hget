@@ -1,64 +1,49 @@
-use std::path::Path;
-
 use gpui::*;
-use gpui_component::{
-    tab::{Tab, TabBar},
-    table::{Table, TableCell, TableHead, TableHeader, TableRow},
-};
+use gpui_component::tab::{Tab, TabBar};
 use hget_core::http_request::HttpRequest;
 
-use crate::{components::key_value_table::KeyValueTable, state::State};
+use crate::components::{key_value_table::KeyValueTable, selectable_text::SelectableText};
 
 pub struct Content {
     active_tab: usize,
     headers_table: Entity<KeyValueTable>,
+    raw_file: Entity<SelectableText>,
 }
 
 impl Content {
     pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
         let headers_table = cx.new(|cx| KeyValueTable::new(window, cx));
 
-        // let state = cx.global::<State>();
-
-        // let repository = state.repository.clone().unwrap();
-        // let (http_request, raw) = repository.get_http_file(&Path::new(&state.active_path.clone().unwrap().to_string())).unwrap();
-
-        // let subscription = cx.observe_global::<State>(|this, cx| {
-        //     this._pending_update = true;
-        //     cx.notify();
-        // });
-        
-        // this.headers_table.update(cx, |table, cx| {
-        //     table.set_rows(window, cx, http_request.headers.clone());
-        // });
-        
         Self {
             active_tab: 0,
             headers_table,
+            raw_file: cx.new(|cx| SelectableText::new("".into(), window, cx)),
         }
     }
 
-    // pub fn load_path(&mut self, cx: &mut Context<Self>)  {
-    //     let state = cx.global::<State>();
-
-    //     let repository = state.repository.clone().unwrap();
-    //     let (http_request, raw) = repository.get_http_file(&Path::new(&state.active_path.clone().unwrap().to_string())).unwrap();
-
-    //     self.http_request = Some(http_request);
-    //     cx.notify();
-    // }
-
-    pub fn notify_request_change(&mut self, window: &mut Window, cx: &mut Context<Self>, http_request: Option<HttpRequest>) {
+    pub fn notify_request_change(
+        &mut self,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+        http_request: Option<HttpRequest>,
+    ) {
         if http_request.is_none() {
-            self.headers_table.update(cx, move |table, cx| {
-                table.set_rows(window, cx, http_request.clone().unwrap().headers.clone());
+            self.headers_table.update(cx, |table, cx| {
+                table.set_rows(window, cx, Vec::new());
             });
 
+            self.raw_file.update(cx, |this, cx| {
+                this.set_text(window, cx, "".into());
+            });
             return;
         }
 
-        self.headers_table.update(cx, move |table, cx| {
+        self.headers_table.update(cx, |table, cx| {
             table.set_rows(window, cx, http_request.clone().unwrap().headers.clone());
+        });
+
+        self.raw_file.update(cx, |this, cx| {
+            this.set_text(window, cx, http_request.clone().unwrap().to_string().into());
         });
     }
 
@@ -69,17 +54,8 @@ impl Content {
 
 impl Render for Content {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        // if self._pending_update {
-        //     self.load_path(cx);
-            
-        //     let http_request = self.http_request.clone();
-        //     self.headers_table.update(cx, move |table, cx| {
-        //         table.set_rows(window, cx, http_request.clone().unwrap().headers.clone());
-        //     });
-
-        //     self._pending_update = false;
-        // }
         div()
+            .h_full()
             .child(
                 TabBar::new("default-tabs")
                     .selected_index(self.active_tab)
@@ -94,9 +70,11 @@ impl Render for Content {
                     .child(Tab::new().label("File")),
             )
             .child(match self.active_tab {
-                0 => self.headers_table.clone().into_any_element(),
-                1 => div().child("rendering profile").into_any_element(),
-                2 => div().child("rendering documents").into_any_element(),
+                0 => div().child("rendering params").into_any_element(),
+                1 => div().child("rendering body").into_any_element(),
+                2 => self.headers_table.clone().into_any_element(),
+                3 => div().child("auth").into_any_element(),
+                4 => self.raw_file.clone().into_any_element(),
                 _ => div().child("what?").into_any_element(),
             })
     }

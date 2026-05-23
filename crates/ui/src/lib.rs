@@ -10,3 +10,4 @@ pub mod response_pane;
 pub mod file_tree;
 pub mod tab;
 pub mod components;
+pub mod theme;

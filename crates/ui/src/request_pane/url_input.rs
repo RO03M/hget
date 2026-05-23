@@ -1,10 +1,10 @@
 use gpui::*;
 use gpui_component::{
-    IndexPath,
-    input::{Input, InputState},
-    select::{SearchableVec, Select, SelectState},
+    IndexPath, button::Button, input::{Input, InputState}, select::{SearchableVec, Select, SelectState}
 };
 use hget_core::http_request::HttpRequest;
+
+pub struct SendRequestEvent;
 
 pub struct UrlInput {
     input_state: Entity<InputState>,
@@ -12,6 +12,8 @@ pub struct UrlInput {
     url: SharedString,
     method: SharedString,
 }
+
+impl EventEmitter<SendRequestEvent> for UrlInput {}
 
 impl UrlInput {
     pub fn new(window: &mut Window, cx: &mut App) -> Self {
@@ -91,7 +93,14 @@ impl Render for UrlInput {
                                 .menu_width(px(110.0))
                         ),
                 )
-                .child(Input::new(&self.input_state).flex_grow().w_0()),
+                .child(Input::new(&self.input_state).flex_grow().w_0())
+                .child(
+                    Button::new("dispatch-request")
+                        .label(">")
+                        .on_click(cx.listener(|_this, _event, _window, cx| {
+                            cx.emit(SendRequestEvent);
+                        }))
+                ),
         )
     }
 }

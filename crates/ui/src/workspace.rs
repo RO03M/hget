@@ -1,8 +1,7 @@
 use gpui::prelude::FluentBuilder;
 use gpui::*;
 use gpui_component::{
-    Root,
-    resizable::{h_resizable, resizable_panel},
+    ActiveTheme, Root, resizable::{h_resizable, resizable_panel}
 };
 
 use crate::{file_tree::FileTree, request_pane::RequestPane, response_pane::ResponsePane};
@@ -35,6 +34,7 @@ impl Render for Workspace {
 
         return div()
             .size_full()
+            .bg(cx.theme().background.to_rgb())
             .child(
                 h_resizable("main-resizable")
                     .child(resizable_panel().child(self.file_tree.clone()))

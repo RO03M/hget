@@ -76,6 +76,7 @@ impl Render for FileTree {
                     .child(h_flex()
                     .gap_2()
                     .child(entry.item().label.clone()))
+                    .pl(rems(entry.depth() as f32))
                     .on_click({
                         let value = entity.clone();
                         move |event, window, cx| {

@@ -1,11 +1,12 @@
 use gpui::BorrowAppContext;
 
-use crate::{state, window, workspace};
+use crate::{state, theme, window, workspace};
 
 pub fn run_app(app: gpui::Application) {
     app.run(move |cx| {
         gpui_component::init(cx);
 
+        theme::init(cx);
         state::init(cx);
 
         cx.update_global::<state::State, _>(|state, cx| {
