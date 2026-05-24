@@ -24,6 +24,6 @@ impl SelectableText {
 
 impl Render for SelectableText {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        Input::new(&self.input_state).appearance(false).h_full()
+        Input::new(&self.input_state).appearance(false).h_full().disabled(true)
     }
 }

@@ -9,7 +9,7 @@ use gpui_component::{
     notification::NotificationType,
     tab::{Tab, TabBar},
 };
-use hget_core::http_request::{self, HttpRequest};
+use hget_core::{executor::HttpResponse, http_request::{self, HttpRequest}};
 
 use crate::{
     request_pane::{
@@ -20,6 +20,9 @@ use crate::{
 };
 
 actions!(request_pane, [Save]);
+
+pub struct ResponseReceivedEvent(pub HttpResponse);
+impl EventEmitter<ResponseReceivedEvent> for RequestPane {}
 
 pub struct RequestPane {
     url_input: Entity<UrlInput>,
@@ -35,19 +38,23 @@ impl RequestPane {
         let url_input = cx.new(|cx| UrlInput::new(window, cx));
         let url_input_sub = cx.subscribe(&url_input, |this, _, _: &SendRequestEvent, cx| {
             let http_request = this.make_current_http_request(cx);
-            let rt = tokio::runtime::Runtime::new().unwrap();
+            // let rt = tokio::runtime::Runtime::new().unwrap();
 
             println!("Firing http request");
             cx.spawn(async move |weak_this: WeakEntity<RequestPane>, mut cx| {
-                let result = cx
+                let response = cx
                     .background_executor()
                     .spawn(async move {
-                        return rt.block_on(async {
-                            http_request.run().await
-                        });
+                        return http_request.run_blocking();
+                        // return rt.block_on(async {
+                        //     http_request.run().await
+                        // });
                     }).await;
+                
+                weak_this.update(cx, |_, cx| {
+                    cx.emit(ResponseReceivedEvent(response.unwrap()));
+                }).ok();
 
-                println!("result: {:?}", result);
 
                 // weak_this
                 //     .update(&mut cx, |this, cx| {

@@ -4,7 +4,7 @@ use gpui_component::{
     ActiveTheme, Root, resizable::{h_resizable, resizable_panel}
 };
 
-use crate::{file_tree::FileTree, request_pane::RequestPane, response_pane::ResponsePane};
+use crate::{file_tree::FileTree, request_pane::{RequestPane, ResponseReceivedEvent}, response_pane::ResponsePane};
 
 pub fn build_workspace_view(window: &mut Window, cx: &mut App) -> Entity<Root> {
     let view = cx.new(|cx| Workspace::new(window, cx));
@@ -16,14 +16,28 @@ pub struct Workspace {
     file_tree: Entity<FileTree>,
     request_pane: Entity<RequestPane>,
     response_pane: Entity<ResponsePane>,
+    _subscriptions: Subscription,
 }
 
 impl Workspace {
     pub fn new(window: &mut Window, cx: &mut App) -> Self {
+        let request_pane = cx.new(|cx| RequestPane::new(window, cx));
+        let response_pane = cx.new(|cx| ResponsePane::new(window, cx));
+
+        let response_sub = cx.subscribe(&request_pane, {
+            let response_pane = response_pane.clone();
+            move |_, event: &ResponseReceivedEvent, cx| {
+                response_pane.update(cx, |pane, cx| {
+                    pane.set_response(cx, event.0.clone());
+                });
+            }
+        });
+
         Self {
             file_tree: cx.new(|cx| FileTree::new(cx)),
-            request_pane: cx.new(|cx| RequestPane::new(window, cx)),
-            response_pane: cx.new(|_| ResponsePane::new()),
+            request_pane,
+            response_pane,
+            _subscriptions: response_sub,
         }
     }
 }

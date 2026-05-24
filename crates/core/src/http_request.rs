@@ -1,9 +1,16 @@
 use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use tokio::runtime::Runtime;
+use std::{str::FromStr, sync::OnceLock};
 
 use crate::executor::HttpResponse;
+
+static RT: OnceLock<Runtime> = OnceLock::new();
+
+pub(crate) fn rt() -> &'static Runtime {
+    return RT.get_or_init(|| Runtime::new().unwrap());
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpRequest {
@@ -48,6 +55,10 @@ impl HttpRequest {
         }
 
         result
+    }
+
+    pub fn run_blocking(&self) -> anyhow::Result<HttpResponse> {
+        return rt().block_on(self.run())
     }
 
     pub async fn run(&self) -> anyhow::Result<HttpResponse> {
