@@ -1,15 +1,45 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
 
 use crate::executor::HttpResponse;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct QueryParam {
+    pub name: String,
+    pub value: String,
+    pub is_active: bool,
+}
+
+impl Display for QueryParam {  
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}={} ({})",
+            self.name,
+            self.value,
+            self.is_active
+        )
+    }
+}
+
+impl QueryParam {
+    pub fn new(name: impl Into<String>, value: impl Into<String>, is_active: bool) -> Self {
+        Self {
+            name: name.into(),
+            value: value.into(),
+            is_active
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HttpRequest {
     pub name: String,
     pub method: String,
     pub url: String,
+    pub params: Vec<QueryParam>,
     pub headers: Vec<(String, String)>,
     pub body: Option<String>,
 }
@@ -68,6 +98,7 @@ impl HttpRequest {
 
 #[cfg(test)]
 mod tests {
+    use crate::*;
     use super::*;
 
     #[test]
@@ -78,10 +109,22 @@ mod tests {
             url: "https://example.com".to_string(),
             headers: vec![("Content-Type".to_string(), "application/json".to_string())],
             body: Some(r#"{"name":"Alice"}"#.to_string()),
+            ..Default::default()
         };
         assert_eq!(
             req.to_string(),
             "POST https://example.com\nContent-Type: application/json\n\n{\"name\":\"Alice\"}"
         );
+    }
+
+    #[test]
+    fn query_params_multiline() {
+        let raw = "POST https://httpbin.org/post
+        ? key1 = value2
+        ? key2 = value2";
+
+
+        let http_request = parser::parse(raw);
+        println!("{:?}", http_request);
     }
 }

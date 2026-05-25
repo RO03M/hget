@@ -125,6 +125,7 @@ mod tests {
             url: "https://romera.dev".into(),
             headers: vec![],
             body: Some("".into()),
+            ..Default::default()
         }
     }
 

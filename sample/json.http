@@ -1,0 +1,33 @@
+@var=content
+
+### foo
+# @name foo
+# @name nice
+POST https://httpbin.org/post
+?filter=true
+&sort=DESC
+&test=false
+Content-Type: application/json;charset=utf8
+Authorization: Bearer mytoken123
+Accept: application/json
+X-Content: {{var}}
+//teste
+#fgooa
+
+{
+    "name": "{{teste.response.body.args.sort}}",
+    "email": "john@example.com"
+}
+
+###
+# @name teste
+POST https://httpbin.org/post?filter=true&sort=DESC HTTP/2
+Content-Type: application/json;charset=utf8
+Authorization: Bearer mytoken123
+Accept: application/json
+X-Content: {{var}}
+
+{
+    "name": "{{foo.response.body.args.filter}}",
+    "email": "john@example.com"
+}
