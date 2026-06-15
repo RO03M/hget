@@ -6,8 +6,9 @@
 POST https://httpbin.org/post
 # Isso é um filtro
 ?filter=true
-# Isso é um sort de não sei o que não sei o que lá
-# Multiline para complicar a vida né
+#&sort=ASC
+// Isso é um sort de não sei o que não sei o que lá
+// Multiline para complicar a vida né
 &sort=DESC
 &test=false
 Content-Type: application/json;charset=utf8

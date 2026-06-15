@@ -1,38 +1,9 @@
-use std::{fmt::Display, str::FromStr};
+use std::{str::FromStr};
 use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
 
-use crate::executor::HttpResponse;
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct QueryParam {
-    pub name: String,
-    pub value: String,
-    pub is_active: bool,
-}
-
-impl Display for QueryParam {  
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}={} ({})",
-            self.name,
-            self.value,
-            self.is_active
-        )
-    }
-}
-
-impl QueryParam {
-    pub fn new(name: impl Into<String>, value: impl Into<String>, is_active: bool) -> Self {
-        Self {
-            name: name.into(),
-            value: value.into(),
-            is_active
-        }
-    }
-}
+use crate::{executor::HttpResponse, header::Header, query_param::QueryParam};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HttpRequest {
@@ -40,7 +11,7 @@ pub struct HttpRequest {
     pub method: String,
     pub url: String,
     pub params: Vec<QueryParam>,
-    pub headers: Vec<(String, String)>,
+    pub headers: Vec<Header>,
     pub body: Option<String>,
 }
 
@@ -48,8 +19,23 @@ impl HttpRequest {
     pub fn to_string(&self) -> String {
         let mut result = format!("{} {}\n", self.method, self.url);
 
-        for (key, value) in &self.headers {
-            result.push_str(&format!("{}: {}\n", key, value));
+        let mut is_first = true;
+        for param in &self.params {
+            if param.comments.len() > 0 {
+                for comment in param.comments.split('\n') {
+                    result.push_str(&format!("// {}\n", comment));
+                }
+            }
+
+            result.push_str(&param.to_string(is_first));
+            result.push('\n');
+            if param.is_active {
+                is_first = false;
+            }
+        }
+
+        for header in &self.headers {
+            result.push_str(&format!("{}: {}\n", header.key, header.value));
         }
 
         if let Some(body) = &self.body {
@@ -70,8 +56,8 @@ impl HttpRequest {
 
         let mut builder = client.request(method, &self.url);
 
-        for (key, value) in &self.headers {
-            builder = builder.header(key, value);
+        for header in &self.headers {
+            builder = builder.header(header.key.clone(), header.value.clone());
         }
 
         if let Some(body) = &self.body {
@@ -98,7 +84,6 @@ impl HttpRequest {
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
     use super::*;
 
     #[test]
@@ -107,24 +92,33 @@ mod tests {
             name: "test".to_string(),
             method: "POST".to_string(),
             url: "https://example.com".to_string(),
-            headers: vec![("Content-Type".to_string(), "application/json".to_string())],
+            params: vec![
+                QueryParam::new("filter", "true", true, "filtering"),
+                QueryParam::new("disabled", "true", false, ""),
+                QueryParam::new("sort", "DESC", true, ""),
+            ],
+            headers: vec![Header::new("Content-Type", "application/json", "This is the content type")],
             body: Some(r#"{"name":"Alice"}"#.to_string()),
             ..Default::default()
         };
+
+        let expected = r#"POST https://example.com
+// filtering
+?filter=true
+#&disabled=true
+&sort=DESC
+// This is the content type
+Content-Type: application/json
+
+{"name":"Alice"}
+"#.trim();
+
+        println!("{}", req.to_string());
+        println!("{expected}");
+
         assert_eq!(
             req.to_string(),
-            "POST https://example.com\nContent-Type: application/json\n\n{\"name\":\"Alice\"}"
+            expected
         );
-    }
-
-    #[test]
-    fn query_params_multiline() {
-        let raw = "POST https://httpbin.org/post
-        ? key1 = value2
-        ? key2 = value2";
-
-
-        let http_request = parser::parse(raw);
-        println!("{:?}", http_request);
     }
 }

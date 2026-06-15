@@ -1,14 +1,11 @@
-use crate::http_request::{HttpRequest, QueryParam};
+use crate::{header::Header, http_request::HttpRequest, query_param::QueryParam};
 
 #[derive(PartialEq, Debug)]
 enum State {
     Method,
-    Params,
     Headers,
     Body,
 }
-
-const HTTP_METHODS: [&str; 7] = ["GET"   , "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"];
 
 fn uncomment(line: impl Into<String>) -> String {
     let line = line.into();
@@ -33,7 +30,7 @@ fn is_query_param_line(line: impl Into<String>) -> bool {
     return uncommented.starts_with("?") || uncommented.starts_with("&")
 }
 
-pub(crate) fn resolve_params(raw: impl Into<String>) -> Vec<QueryParam> {
+pub(crate) fn resolve_params(raw: impl Into<String>, comment: String) -> Vec<QueryParam> {
     let mut params: Vec<QueryParam> = Vec::new();
     let raw = raw.into();
     let parts: Vec<&str> = raw.split("&").collect();
@@ -53,7 +50,7 @@ pub(crate) fn resolve_params(raw: impl Into<String>) -> Vec<QueryParam> {
         }
 
 
-        params.push(QueryParam::new(key, value, !is_commented));
+        params.push(QueryParam::new(key, value, !is_commented, comment.clone()));
     }
 
     return params;
@@ -65,18 +62,20 @@ pub(crate) fn split_params_from_url(url: impl Into<String>) -> (String, Vec<Quer
 
     let url = parts.next().unwrap();
     let params = parts.next().unwrap_or("");
-    let params = resolve_params(params);
+    let params = resolve_params(params, "".into());
 
     return (url.into(), params);
 }
 
 pub fn parse(input: &str) -> Vec<HttpRequest> {
-    let lines = input.lines();
+    let lines = input.trim().lines();
 
     let mut requests: Vec<HttpRequest> = vec![];
     let mut current_request: Option<HttpRequest> = None;
     let mut state = State::Method;
     let mut body_lines: Vec<String> = vec![];
+
+    let mut comments = String::new();
 
     for line in lines {
         let line = line.trim();
@@ -87,9 +86,21 @@ pub fn parse(input: &str) -> Vec<HttpRequest> {
                 state = State::Body;
             }
 
+            comments = String::new();
+
             continue;
         }
 
+        if line.starts_with("//") {
+            if comments.len() != 0 {
+                comments.push('\n');
+            }
+            comments.push_str(line.strip_prefix("//").unwrap_or("").trim());
+
+            continue;
+        }
+
+        // Request with a name
         if line.starts_with("###") {
             if let Some(mut req) = current_request.take() {
                 if !body_lines.is_empty() {
@@ -135,18 +146,22 @@ pub fn parse(input: &str) -> Vec<HttpRequest> {
                 });
             }
 
+            comments = String::new();
+
             state = State::Headers;
         } else if state == State::Headers {
             if let Some(req) = current_request.as_mut() {
                 if is_query_param_line(line) {
-                    let params = resolve_params(line);
+                    let params = resolve_params(line, comments);
+                    comments = String::new();
 
                     req.params.extend(params);
                 } else {
                     let header: Vec<&str> = line.splitn(2, ":").collect();
                     let key = header.get(0).unwrap_or(&"").trim();
                     let value = header.get(1).unwrap_or(&"").trim();
-                    req.headers.push((key.to_string(), value.to_string()));
+                    req.headers.push(Header::new(key, value, true, comments));
+                    comments = String::new();
                 }
             }
         } else if state == State::Body {
@@ -172,8 +187,11 @@ mod tests {
     #[test]
     fn multiline_query() {
         let raw = r#"POST https://httpbin.org/post?filter=true&leticia=linda
+//Sorting desc now
 &sort=DESC
 #?filter=false
+// This is the name of the person
+// And of course, this is a comment
 &name=John
 #?commented=true
 #&rock=and-stone
@@ -192,29 +210,52 @@ X-Content: {{var}}
         assert_eq!(
             http_requests.get(0).unwrap().params,
             vec![
-                QueryParam::new("filter", "true", true),
-                QueryParam::new("leticia", "linda", true),
-                QueryParam::new("sort", "DESC", true),
-                QueryParam::new("filter", "false", false),
-                QueryParam::new("name", "John", true),
-                QueryParam::new("commented", "true", false),
-                QueryParam::new("rock", "and-stone", false),
+                QueryParam::new("filter", "true", true, ""),
+                QueryParam::new("leticia", "linda", true, ""),
+                QueryParam::new("sort", "DESC", true, "Sorting desc now"),
+                QueryParam::new("filter", "false", false, ""),
+                QueryParam::new("name", "John", true, "This is the name of the person\nAnd of course, this is a comment"),
+                QueryParam::new("commented", "true", false, ""),
+                QueryParam::new("rock", "and-stone", false, ""),
             ]
         );
 
         assert_eq!(
             http_requests.get(0).unwrap().headers,
             vec![
-                ("Content-Type".into(), "application/json;charset=utf8".into()),
-                ("Authorization".into(), "Bearer mytoken123".into()),
-                ("Accept".into(), "application/json".into()),
-                ("X-Content".into(), "{{var}}".into()),
+                Header::new("Content-Type", "application/json;charset=utf8", true, ""),
+                Header::new("Authorization", "Bearer mytoken123", true, ""),
+                Header::new("Accept", "application/json", true, ""),
+                Header::new("X-Content", "{{var}}", true, ""),
             ]
         );
 
         assert_eq!(
             http_requests.get(0).unwrap().body.clone().unwrap_or("".to_string()),
             "{\n\"name\": \"John Doe\",\n\"email\": \"john@example.com\"\n}"
+        );
+    }
+
+    #[test]
+    fn headers_description() {
+        let raw = r#"POST https://httpbin.org/post
+// This is json
+Content-Type: application/json;charset=utf8
+// This is the token
+// we should hide it
+Authorization: Bearer mytoken123
+// Custom header
+X-Custom: {{CUSTOM_KEY}}
+"#;
+        let http_requests = parse(raw);
+
+        assert_eq!(
+            http_requests.get(0).unwrap().headers,
+            vec![
+                Header::new("Content-Type", "application/json;charset=utf8", true, "This is json"),
+                Header::new("Authorization", "Bearer mytoken123", true, "This is the token\nwe should hide it"),
+                Header::new("X-Custom", "{{CUSTOM_KEY}}", true, "Custom header"),
+            ]
         );
     }
 
@@ -226,8 +267,8 @@ X-Content: {{var}}
             (
                 "http://localhost/users".into(),
                 vec![
-                    QueryParam::new("name", "John", true),
-                    QueryParam::new("surname", "Devo", true),
+                    QueryParam::new("name", "John", true, ""),
+                    QueryParam::new("surname", "Devo", true, ""),
                 ]
             )
         );
@@ -237,7 +278,7 @@ X-Content: {{var}}
             res,
             (
                 "http://localhost/users".into(),
-                vec![QueryParam::new("name", "John", true),]
+                vec![QueryParam::new("name", "John", true, ""),]
             )
         );
 
@@ -247,12 +288,12 @@ X-Content: {{var}}
 
     #[test]
     fn handle_invalid_params() {
-        let res = resolve_params("Content-Type: application/json");
+        let res = resolve_params("Content-Type: application/json", "".into());
         assert_eq!(res, vec![]);
         let res = resolve_params("{
             \"name\": \"John Doe\",
             \"email\": \"john@example.com\"
-        }");
+        }", "".into());
         assert_eq!(res, vec![]);
     }
 
@@ -284,11 +325,11 @@ X-Content: {{var}}
         assert_eq!(res[0].headers.len(), 2);
         assert_eq!(
             res[0].headers[0],
-            ("Authorization".to_string(), "Bearer token123".to_string())
+            Header::new("Authorization", "Bearer token123", true, "")
         );
         assert_eq!(
             res[0].headers[1],
-            ("Accept".to_string(), "application/json".to_string())
+            Header::new("Accept", "application/json", true, "")
         );
     }
 
