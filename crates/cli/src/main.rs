@@ -1,7 +1,7 @@
-use std::fs;
+use std::{fs, path::PathBuf};
 
 use clap::{Parser, Subcommand};
-use hget_core;
+use hget_core::{self, http_file::HttpFile, repository::{self, Repository}};
 
 mod editor;
 
@@ -17,18 +17,50 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Open editor to write a new .http request
     Add,
+    Init {
+        path: Option<PathBuf>,
+    },
+    Run {
+        file: PathBuf,
+    }
 }
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<(), String> {
     let cli = Cli::parse();
 
     match cli.command {
         Some(Command::Add) => {
             let content = editor::open_editor_and_get_string();
             println!("{content}");
+        }
+        Some(Command::Init { path }) => {
+            let absolute = std::path::absolute(path.unwrap_or(".".into())).unwrap();
+            let repo = Repository::init(&absolute).map_err(|e| e.to_string())?;
+
+            println!("{:?}", repo);
+        }
+        Some(Command::Run { mut file }) => {
+            let extension = file.extension().map(|e| e.to_os_string());
+
+            if extension.is_none() {
+                file.set_extension("http");
+            }
+            
+            let target = std::path::absolute(".").unwrap().join(&file);
+
+            if !target.exists() {
+                panic!("{}: file not found", target.to_str().unwrap_or(""));
+            }
+
+            let repo = Repository::open(&target).unwrap();
+            let http_file = repo.get_http_file(&target).unwrap();
+            let target_http_req = http_file.first().expect("http file doesn't have a request to run");
+            println!("{:?}", target_http_req.params);
+            let response = target_http_req.run().await;
+
+            println!("{response:?}");
         }
         None => {
             let file = cli.file.expect("provide a .http file or use 'hget add'");

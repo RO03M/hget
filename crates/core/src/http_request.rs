@@ -1,7 +1,7 @@
-use std::{str::FromStr};
 use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 use crate::{executor::HttpResponse, header::Header, query_param::QueryParam};
 
@@ -16,16 +16,34 @@ pub struct HttpRequest {
 }
 
 impl HttpRequest {
+    fn format_comments(&self, comments: impl Into<String>) -> String {
+        let comments = comments.into();
+        if comments.len() == 0 {
+            return String::new();
+        }
+
+        let mut result = String::new();
+        for comment in comments.split('\n') {
+            result.push_str(&format!("// {}\n", comment));
+        }
+        result
+    }
+
+    pub fn active_headers(&self) -> Vec<Header> {
+        return self
+            .headers
+            .iter()
+            .filter(|header| header.is_active)
+            .cloned()
+            .collect();
+    }
+
     pub fn to_string(&self) -> String {
         let mut result = format!("{} {}\n", self.method, self.url);
 
         let mut is_first = true;
         for param in &self.params {
-            if param.comments.len() > 0 {
-                for comment in param.comments.split('\n') {
-                    result.push_str(&format!("// {}\n", comment));
-                }
-            }
+            result.push_str(&self.format_comments(param.comments.clone()));
 
             result.push_str(&param.to_string(is_first));
             result.push('\n');
@@ -35,7 +53,9 @@ impl HttpRequest {
         }
 
         for header in &self.headers {
-            result.push_str(&format!("{}: {}\n", header.key, header.value));
+            result.push_str(&self.format_comments(header.description.clone()));
+            result.push_str(&header.to_string());
+            result.push('\n');
         }
 
         if let Some(body) = &self.body {
@@ -46,17 +66,17 @@ impl HttpRequest {
         result
     }
 
-    pub async fn run(&self) -> anyhow::Result<HttpResponse> {
+    pub async fn run(&self) -> Result<HttpResponse, String> {
         if self.url.is_empty() {
-            return Err(anyhow!("Invalid URL"));
+            return Err("Invalid URL".into());
         }
 
         let client = Client::new();
-        let method = Method::from_str(&self.method)?;
+        let method = Method::from_str(&self.method).map_err(|e| e.to_string())?;
 
         let mut builder = client.request(method, &self.url);
 
-        for header in &self.headers {
+        for header in self.active_headers() {
             builder = builder.header(header.key.clone(), header.value.clone());
         }
 
@@ -64,7 +84,7 @@ impl HttpRequest {
             builder = builder.body(body.clone());
         }
 
-        let response = builder.send().await?;
+        let response = builder.send().await.map_err(|e| e.to_string())?;
 
         let status = response.status().as_u16();
         let headers: Vec<(String, String)> = response
@@ -97,7 +117,20 @@ mod tests {
                 QueryParam::new("disabled", "true", false, ""),
                 QueryParam::new("sort", "DESC", true, ""),
             ],
-            headers: vec![Header::new("Content-Type", "application/json", "This is the content type")],
+            headers: vec![
+                Header::new(
+                    "Content-Type",
+                    "application/json",
+                    true,
+                    "This is the content type\nWith another line",
+                ),
+                Header::new(
+                    "Accept",
+                    "application/json",
+                    false,
+                    "This is a disabled header",
+                ),
+            ],
             body: Some(r#"{"name":"Alice"}"#.to_string()),
             ..Default::default()
         };
@@ -108,17 +141,18 @@ mod tests {
 #&disabled=true
 &sort=DESC
 // This is the content type
+// With another line
 Content-Type: application/json
+// This is a disabled header
+#Accept: application/json
 
 {"name":"Alice"}
-"#.trim();
+"#
+        .trim();
 
         println!("{}", req.to_string());
         println!("{expected}");
 
-        assert_eq!(
-            req.to_string(),
-            expected
-        );
+        assert_eq!(req.to_string(), expected);
     }
 }

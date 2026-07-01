@@ -1,8 +1,4 @@
-@var=content
-
 ### foo
-# @name foo
-# @name nice
 POST https://httpbin.org/post
 # Isso é um filtro
 ?filter=true

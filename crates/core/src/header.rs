@@ -17,4 +17,12 @@ impl Header {
             description: description.into(),
         }
     }
+
+    pub fn to_string(&self) -> String {
+        if !self.is_active {
+            return format!("#{}: {}", self.key, self.value);
+        }
+        
+        format!("{}: {}", self.key, self.value)
+    }
 }

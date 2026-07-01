@@ -79,6 +79,8 @@ pub fn parse(input: &str) -> Vec<HttpRequest> {
 
     for line in lines {
         let line = line.trim();
+
+        let is_commented = is_commented(line);
         
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.is_empty() {
@@ -160,7 +162,7 @@ pub fn parse(input: &str) -> Vec<HttpRequest> {
                     let header: Vec<&str> = line.splitn(2, ":").collect();
                     let key = header.get(0).unwrap_or(&"").trim();
                     let value = header.get(1).unwrap_or(&"").trim();
-                    req.headers.push(Header::new(key, value, true, comments));
+                    req.headers.push(Header::new(key, value, !is_commented, comments));
                     comments = String::new();
                 }
             }

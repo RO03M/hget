@@ -6,3 +6,4 @@ pub mod http_request;
 pub mod helpers;
 pub mod query_param;
 pub mod header;
+pub mod http_file;
