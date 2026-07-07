@@ -1,9 +1,10 @@
 use std::{path::{Path, PathBuf}, str::FromStr};
 
-use crate::{http_request::HttpRequest, parser};
+use crate::{http_request::HttpRequest, parser, variable::Variable};
 
 #[derive(Debug, Clone)]
 pub struct HttpFile {
+    pub variables: Vec<Variable>,
     pub requests: Vec<HttpRequest>
 }
 
@@ -11,19 +12,16 @@ impl FromStr for HttpFile {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(HttpFile {
-            requests: parser::parse(s),
-        })
+        Ok(parser::parse(s))
     }
 }
 
 impl std::fmt::Display for HttpFile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let content = self.requests.iter().map(|request| request.to_string()).collect::<Vec<String>>().join("\n");
+        let variables = self.variables.iter().map(|variable| variable.to_string()).collect::<Vec<String>>().join("\n");
+        let requests = self.requests.iter().map(|request| request.to_string()).collect::<Vec<String>>().join("\n");
         
-        write!(f, "{}", content)?;
-
-        Ok(())
+        write!(f, "{}\n{}", variables, requests)
     }
 }
 

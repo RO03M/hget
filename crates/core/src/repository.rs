@@ -81,7 +81,7 @@ impl Repository {
     }
 
     pub fn get_http_file(&self, path: &Path) -> Result<HttpFile, String> {
-        return HttpFile::from_file(self.dot_path.join(path));
+        return HttpFile::from_file(std::path::absolute(".").unwrap().join(&path));
     }
 
     // acho que collection não faz sentido aqui, pq o repository é a própria collection

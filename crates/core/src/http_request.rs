@@ -1,9 +1,8 @@
-use anyhow::anyhow;
 use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
-use crate::{executor::HttpResponse, header::Header, query_param::QueryParam};
+use crate::{executor::HttpResponse, header::Header, query_param::{QueryParam, QueryParamVec}, variable::{Variable, inject_variables}};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HttpRequest {
@@ -42,11 +41,12 @@ impl HttpRequest {
         let mut result = format!("{} {}\n", self.method, self.url);
 
         let mut is_first = true;
-        for param in &self.params {
+        for param in self.params.clone() {
             result.push_str(&self.format_comments(param.comments.clone()));
 
-            result.push_str(&param.to_string(is_first));
+            result.push_str(&param.to_string_with_prefix(is_first));
             result.push('\n');
+
             if param.is_active {
                 is_first = false;
             }
@@ -66,18 +66,35 @@ impl HttpRequest {
         result
     }
 
-    pub async fn run(&self) -> Result<HttpResponse, String> {
+    pub fn build_injected(&self, variables: HashMap<String, String>) -> HttpRequest {
+        let mut request = self.clone();
+        
+        request.url = inject_variables(&self.url, &variables);
+        request.params = self.params.iter().map(|param| param.build_variables(&variables)).collect();
+        request.headers = self.headers.iter().map(|header| header.build_variables(&variables)).collect();
+        request.body = if let Some(body) = self.body.clone() {
+            Some(inject_variables(&body, &variables))
+        } else {
+            None
+        };
+
+        return request;
+    }
+    
+    pub async fn run(&self, variables: HashMap<String, String>) -> Result<HttpResponse, String> {
         if self.url.is_empty() {
-            return Err("Invalid URL".into());
+            return Err("url is empty".into());
         }
 
         let client = Client::new();
         let method = Method::from_str(&self.method).map_err(|e| e.to_string())?;
 
-        let mut builder = client.request(method, &self.url);
+        let mut builder = client
+            .request(method, &self.url)
+            .query(&self.params.to_tuples());
 
         for header in self.active_headers() {
-            builder = builder.header(header.key.clone(), header.value.clone());
+            builder = builder.header(header.name.clone(), header.value.clone());
         }
 
         if let Some(body) = &self.body {
@@ -150,8 +167,8 @@ Content-Type: application/json
 "#
         .trim();
 
-        println!("{}", req.to_string());
-        println!("{expected}");
+        println!("got: {}", req.to_string());
+        println!("expected: {expected}");
 
         assert_eq!(req.to_string(), expected);
     }

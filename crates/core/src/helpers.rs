@@ -81,6 +81,22 @@ pub fn slugify(s: &str) -> String {
         .to_string()
 }
 
+pub fn is_line_commented(s: &str) -> bool {
+    return s.starts_with("//");
+}
+
+pub fn uncomment(line: &str) -> &str {
+    return line.trim().trim_start_matches("#").trim_start_matches("//").trim_start_matches("/").trim();
+}
+
+pub fn is_line_active(line: &str) -> bool {
+    return !line.starts_with("#");
+}
+
+pub fn strip_slashes(line: &str) -> &str {
+    return line.trim().trim_start_matches("//").trim_start_matches("/").trim();
+}
+
 #[cfg(test)]
 mod tests {
     use tempfile::tempdir;
@@ -102,5 +118,14 @@ mod tests {
         let nodes = list_http_tree(dir.path());
 
         println!("{:?}", nodes);
+    }
+
+    #[test]
+    fn test_uncomment() {
+        assert_eq!(uncomment("# hello "), "hello");
+        assert_eq!(uncomment("#hello"), "hello");
+        assert_eq!(uncomment("###hello"), "hello");
+        assert_eq!(uncomment("### hello"), "hello");
+        assert_eq!(uncomment("###  hello"), "hello");
     }
 }

@@ -1,6 +1,8 @@
-use std::fmt::Display;
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+
+use crate::variable::inject_variables;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct QueryParam {
@@ -10,15 +12,22 @@ pub struct QueryParam {
     pub is_active: bool,
 }
 
-impl Display for QueryParam {  
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}={} ({})",
-            self.name,
-            self.value,
-            self.is_active
-        )
+pub trait QueryParamVec {
+    fn to_tuples(&self) -> Vec<(&str, &str)>;
+}
+
+impl QueryParamVec for Vec<QueryParam> {
+    fn to_tuples(&self) -> Vec<(&str, &str)> {
+        return self
+            .iter()
+            .filter_map(|qp| {
+                if !qp.is_active {
+                    return None;
+                }
+    
+                return Some((qp.name.as_str(), qp.value.as_str()));
+            })
+            .collect();
     }
 }
 
@@ -32,10 +41,28 @@ impl QueryParam {
         }
     }
 
-    pub fn to_string(&self, is_first: bool) -> String {
-        let prefix = if is_first { "?" } else { "&" };
-        let comment_hash = if self.is_active { "" } else { "#" };
+    pub fn build_variables(&self, variables: &HashMap<String, String>) -> QueryParam {
+        let mut output = self.clone();
 
-        return format!("{comment_hash}{prefix}{}={}", self.name, self.value)
+        output.name = inject_variables(&self.name, variables);
+        output.value = inject_variables(&self.value, variables);
+        
+        return output;
+    }
+    
+    pub fn to_string_with_prefix(&self, is_first: bool) -> String {
+        let mut line = format!("{}={}", self.name, self.value);
+
+        if is_first {
+            line.insert(0, '?');
+        } else {
+            line.insert(0, '&');
+        }
+        
+        if !self.is_active {
+            line.insert(0, '#');
+        }
+
+        return line;
     }
 }
