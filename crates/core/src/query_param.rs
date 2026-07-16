@@ -25,7 +25,7 @@ impl QueryParamVec for Vec<QueryParam> {
                 if !qp.is_active {
                     return None;
                 }
-    
+
                 return Some((qp.name.as_str(), qp.value.as_str()));
             })
             .collect();
@@ -38,7 +38,7 @@ impl QueryParamVec for Vec<QueryParam> {
                 if !query.is_active {
                     return None;
                 }
-    
+
                 return Some(format!("{}={}", query.name, query.value));
             })
             .collect::<Vec<_>>()
@@ -49,7 +49,12 @@ impl QueryParamVec for Vec<QueryParam> {
 }
 
 impl QueryParam {
-    pub fn new(name: impl Into<String>, value: impl Into<String>, is_active: bool, comments: impl Into<String>) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        value: impl Into<String>,
+        is_active: bool,
+        comments: impl Into<String>,
+    ) -> Self {
         Self {
             name: name.into().trim().into(),
             value: value.into().trim().into(),
@@ -63,10 +68,10 @@ impl QueryParam {
 
         output.name = inject_variables(&self.name, variables);
         output.value = inject_variables(&self.value, variables);
-        
+
         return output;
     }
-    
+
     pub fn to_string_with_prefix(&self, is_first: bool) -> String {
         let mut line = format!("{}={}", self.name, self.value);
 
@@ -75,7 +80,7 @@ impl QueryParam {
         } else {
             line.insert(0, '&');
         }
-        
+
         if !self.is_active {
             line.insert(0, '#');
         }

@@ -1,5 +1,5 @@
 pub struct QueryParams {
-    params: Vec<QueryParams>
+    params: Vec<QueryParams>,
 }
 
 impl QueryParams {
@@ -14,10 +14,7 @@ impl QueryParams {
                 let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
                 return (key.trim().to_string(), value.trim().to_string());
             });
-        
-        Self {
-            params: vec![]
-        }
+
+        Self { params: vec![] }
     }
 }
-

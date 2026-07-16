@@ -1,4 +1,7 @@
-use crate::{header::Header, http_file::HttpFile, http_request::HttpRequest, query_param::QueryParam, variable::Variable};
+use crate::{
+    header::Header, http_file::HttpFile, http_request::HttpRequest, query_param::QueryParam,
+    variable::Variable,
+};
 
 #[derive(PartialEq, Debug)]
 enum State {
@@ -27,7 +30,7 @@ fn is_query_param_line(line: impl Into<String>) -> bool {
     let line = line.into();
     let uncommented = uncomment(line);
 
-    return uncommented.starts_with("?") || uncommented.starts_with("&")
+    return uncommented.starts_with("?") || uncommented.starts_with("&");
 }
 
 pub(crate) fn resolve_params(raw: impl Into<String>, comment: String) -> Vec<QueryParam> {
@@ -36,7 +39,7 @@ pub(crate) fn resolve_params(raw: impl Into<String>, comment: String) -> Vec<Que
     let parts: Vec<&str> = raw.split("&").collect();
 
     let is_commented = is_commented(raw.clone());
-    
+
     for part in parts {
         let part = uncomment(part);
         let (key, value) = part
@@ -48,7 +51,6 @@ pub(crate) fn resolve_params(raw: impl Into<String>, comment: String) -> Vec<Que
         if key == "" {
             continue;
         }
-
 
         params.push(QueryParam::new(key, value, !is_commented, comment.clone()));
     }
@@ -85,7 +87,7 @@ pub fn parse(input: &str) -> HttpFile {
             variables.push(variable);
             continue;
         };
-        
+
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.is_empty() {
             if state == State::Headers {
@@ -187,7 +189,10 @@ pub fn parse(input: &str) -> HttpFile {
         requests.push(req);
     }
 
-    return HttpFile { variables, requests };
+    return HttpFile {
+        variables,
+        requests,
+    };
 }
 
 #[cfg(test)]
@@ -231,7 +236,12 @@ X-Content: {{xcontent}}
                 QueryParam::new("leticia", "linda", true, ""),
                 QueryParam::new("sort", "DESC", true, "Sorting desc now"),
                 QueryParam::new("filter", "false", false, ""),
-                QueryParam::new("name", "John", true, "This is the name of the person\nAnd of course, this is a comment"),
+                QueryParam::new(
+                    "name",
+                    "John",
+                    true,
+                    "This is the name of the person\nAnd of course, this is a comment"
+                ),
                 QueryParam::new("commented", "true", false, ""),
                 QueryParam::new("rock", "and-stone", false, ""),
             ]
@@ -249,180 +259,185 @@ X-Content: {{xcontent}}
         );
 
         assert_eq!(
-            httpfile.first().unwrap().body.clone().unwrap_or("".to_string()),
+            httpfile
+                .first()
+                .unwrap()
+                .body
+                .clone()
+                .unwrap_or("".to_string()),
             "{\n\"name\": \"John Doe\",\n\"email\": \"john@example.com\"\n}"
         );
     }
 
-//     #[test]
-//     fn headers_description() {
-//         let raw = r#"POST https://httpbin.org/post
-// // This is json
-// Content-Type: application/json;charset=utf8
-// // This is the token
-// // we should hide it
-// Authorization: Bearer mytoken123
-// // Custom header
-// X-Custom: {{CUSTOM_KEY}}
-// "#;
-//         let http_requests = parse(raw);
+    //     #[test]
+    //     fn headers_description() {
+    //         let raw = r#"POST https://httpbin.org/post
+    // // This is json
+    // Content-Type: application/json;charset=utf8
+    // // This is the token
+    // // we should hide it
+    // Authorization: Bearer mytoken123
+    // // Custom header
+    // X-Custom: {{CUSTOM_KEY}}
+    // "#;
+    //         let http_requests = parse(raw);
 
-//         assert_eq!(
-//             http_requests.get(0).unwrap().headers,
-//             vec![
-//                 Header::new("Content-Type", "application/json;charset=utf8", true, "This is json"),
-//                 Header::new("Authorization", "Bearer mytoken123", true, "This is the token\nwe should hide it"),
-//                 Header::new("X-Custom", "{{CUSTOM_KEY}}", true, "Custom header"),
-//             ]
-//         );
-//     }
+    //         assert_eq!(
+    //             http_requests.get(0).unwrap().headers,
+    //             vec![
+    //                 Header::new("Content-Type", "application/json;charset=utf8", true, "This is json"),
+    //                 Header::new("Authorization", "Bearer mytoken123", true, "This is the token\nwe should hide it"),
+    //                 Header::new("X-Custom", "{{CUSTOM_KEY}}", true, "Custom header"),
+    //             ]
+    //         );
+    //     }
 
-//     #[test]
-//     fn parse_url() {
-//         let res = split_params_from_url("http://localhost/users?name=John&surname=Devo");
-//         assert_eq!(
-//             res,
-//             (
-//                 "http://localhost/users".into(),
-//                 vec![
-//                     QueryParam::new("name", "John", true, ""),
-//                     QueryParam::new("surname", "Devo", true, ""),
-//                 ]
-//             )
-//         );
+    //     #[test]
+    //     fn parse_url() {
+    //         let res = split_params_from_url("http://localhost/users?name=John&surname=Devo");
+    //         assert_eq!(
+    //             res,
+    //             (
+    //                 "http://localhost/users".into(),
+    //                 vec![
+    //                     QueryParam::new("name", "John", true, ""),
+    //                     QueryParam::new("surname", "Devo", true, ""),
+    //                 ]
+    //             )
+    //         );
 
-//         let res = split_params_from_url("http://localhost/users?name=John");
-//         assert_eq!(
-//             res,
-//             (
-//                 "http://localhost/users".into(),
-//                 vec![QueryParam::new("name", "John", true, ""),]
-//             )
-//         );
+    //         let res = split_params_from_url("http://localhost/users?name=John");
+    //         assert_eq!(
+    //             res,
+    //             (
+    //                 "http://localhost/users".into(),
+    //                 vec![QueryParam::new("name", "John", true, ""),]
+    //             )
+    //         );
 
-//         let res = split_params_from_url("http://localhost/users");
-//         assert_eq!(res, ("http://localhost/users".into(), vec![]));
-//     }
+    //         let res = split_params_from_url("http://localhost/users");
+    //         assert_eq!(res, ("http://localhost/users".into(), vec![]));
+    //     }
 
-//     #[test]
-//     fn handle_invalid_params() {
-//         let res = resolve_params("Content-Type: application/json", "".into());
-//         assert_eq!(res, vec![]);
-//         let res = resolve_params("{
-//             \"name\": \"John Doe\",
-//             \"email\": \"john@example.com\"
-//         }", "".into());
-//         assert_eq!(res, vec![]);
-//     }
+    //     #[test]
+    //     fn handle_invalid_params() {
+    //         let res = resolve_params("Content-Type: application/json", "".into());
+    //         assert_eq!(res, vec![]);
+    //         let res = resolve_params("{
+    //             \"name\": \"John Doe\",
+    //             \"email\": \"john@example.com\"
+    //         }", "".into());
+    //         assert_eq!(res, vec![]);
+    //     }
 
-//     #[test]
-//     fn test_single_get() {
-//         let input = "GET https://example.com/users";
-//         let res = parse(input);
-//         assert_eq!(res.len(), 1);
-//         assert_eq!(res[0].method, "GET");
-//         assert_eq!(res[0].url, "https://example.com/users");
-//         assert_eq!(res[0].name, "");
-//         assert!(res[0].headers.is_empty());
-//         assert!(res[0].body.is_none());
-//     }
+    //     #[test]
+    //     fn test_single_get() {
+    //         let input = "GET https://example.com/users";
+    //         let res = parse(input);
+    //         assert_eq!(res.len(), 1);
+    //         assert_eq!(res[0].method, "GET");
+    //         assert_eq!(res[0].url, "https://example.com/users");
+    //         assert_eq!(res[0].name, "");
+    //         assert!(res[0].headers.is_empty());
+    //         assert!(res[0].body.is_none());
+    //     }
 
-//     #[test]
-//     fn test_named_request() {
-//         let input = "### Get users\nGET https://example.com/users";
-//         let res = parse(input);
-//         assert_eq!(res.len(), 1);
-//         assert_eq!(res[0].name, "Get users");
-//         assert_eq!(res[0].method, "GET");
-//     }
+    //     #[test]
+    //     fn test_named_request() {
+    //         let input = "### Get users\nGET https://example.com/users";
+    //         let res = parse(input);
+    //         assert_eq!(res.len(), 1);
+    //         assert_eq!(res[0].name, "Get users");
+    //         assert_eq!(res[0].method, "GET");
+    //     }
 
-//     #[test]
-//     fn test_headers_parsed() {
-//         let input = "GET https://example.com/users\nAuthorization: Bearer token123\nAccept: application/json";
-//         let res = parse(input);
-//         assert_eq!(res[0].headers.len(), 2);
-//         assert_eq!(
-//             res[0].headers[0],
-//             Header::new("Authorization", "Bearer token123", true, "")
-//         );
-//         assert_eq!(
-//             res[0].headers[1],
-//             Header::new("Accept", "application/json", true, "")
-//         );
-//     }
+    //     #[test]
+    //     fn test_headers_parsed() {
+    //         let input = "GET https://example.com/users\nAuthorization: Bearer token123\nAccept: application/json";
+    //         let res = parse(input);
+    //         assert_eq!(res[0].headers.len(), 2);
+    //         assert_eq!(
+    //             res[0].headers[0],
+    //             Header::new("Authorization", "Bearer token123", true, "")
+    //         );
+    //         assert_eq!(
+    //             res[0].headers[1],
+    //             Header::new("Accept", "application/json", true, "")
+    //         );
+    //     }
 
-//     #[test]
-//     fn test_body_parsed() {
-//         let input = "POST https://example.com/users\nContent-Type: application/json\n\n{\"name\": \"John\"}";
-//         let res = parse(input);
-//         assert_eq!(res[0].method, "POST");
-//         assert!(res[0].body.is_some());
-//         assert!(res[0].body.as_ref().unwrap().contains("\"name\": \"John\""));
-//     }
+    //     #[test]
+    //     fn test_body_parsed() {
+    //         let input = "POST https://example.com/users\nContent-Type: application/json\n\n{\"name\": \"John\"}";
+    //         let res = parse(input);
+    //         assert_eq!(res[0].method, "POST");
+    //         assert!(res[0].body.is_some());
+    //         assert!(res[0].body.as_ref().unwrap().contains("\"name\": \"John\""));
+    //     }
 
-//     #[test]
-//     fn test_multiline_body() {
-//         let input = "POST https://example.com/users\n\n{\n  \"name\": \"John\",\n  \"email\": \"john@example.com\"\n}";
-//         let res = parse(input);
-//         let body = res[0].body.as_ref().unwrap();
-//         assert!(body.contains("\"name\": \"John\""));
-//         assert!(body.contains("\"email\": \"john@example.com\""));
-//     }
+    //     #[test]
+    //     fn test_multiline_body() {
+    //         let input = "POST https://example.com/users\n\n{\n  \"name\": \"John\",\n  \"email\": \"john@example.com\"\n}";
+    //         let res = parse(input);
+    //         let body = res[0].body.as_ref().unwrap();
+    //         assert!(body.contains("\"name\": \"John\""));
+    //         assert!(body.contains("\"email\": \"john@example.com\""));
+    //     }
 
-//     #[test]
-//     fn test_multiple_requests() {
-//         let input = "GET https://example.com/users\n\n###\nPOST https://example.com/users";
-//         let res = parse(input);
-//         assert_eq!(res.len(), 2);
-//         assert_eq!(res[0].method, "GET");
-//         assert_eq!(res[1].method, "POST");
-//     }
+    //     #[test]
+    //     fn test_multiple_requests() {
+    //         let input = "GET https://example.com/users\n\n###\nPOST https://example.com/users";
+    //         let res = parse(input);
+    //         assert_eq!(res.len(), 2);
+    //         assert_eq!(res[0].method, "GET");
+    //         assert_eq!(res[1].method, "POST");
+    //     }
 
-//     #[test]
-//     fn test_multiple_named_requests() {
-//         let input = "### List users\nGET https://example.com/users\n\n### Create user\nPOST https://example.com/users\nContent-Type: application/json\n\n{\"name\": \"John\"}";
-//         let res = parse(input);
-//         assert_eq!(res.len(), 2);
-//         assert_eq!(res[0].name, "List users");
-//         assert_eq!(res[0].method, "GET");
-//         assert_eq!(res[1].name, "Create user");
-//         assert_eq!(res[1].method, "POST");
-//         assert!(res[1].body.is_some());
-//     }
+    //     #[test]
+    //     fn test_multiple_named_requests() {
+    //         let input = "### List users\nGET https://example.com/users\n\n### Create user\nPOST https://example.com/users\nContent-Type: application/json\n\n{\"name\": \"John\"}";
+    //         let res = parse(input);
+    //         assert_eq!(res.len(), 2);
+    //         assert_eq!(res[0].name, "List users");
+    //         assert_eq!(res[0].method, "GET");
+    //         assert_eq!(res[1].name, "Create user");
+    //         assert_eq!(res[1].method, "POST");
+    //         assert!(res[1].body.is_some());
+    //     }
 
-//     #[test]
-//     fn test_all_methods() {
-//         let input = "GET https://a.com\n\n### \nPOST https://a.com\n\n### \nPATCH https://a.com\n\n### \nPUT https://a.com\n\n### \nDELETE https://a.com";
-//         let res = parse(input);
-//         assert_eq!(res.len(), 5);
-//         let methods: Vec<&str> = res.iter().map(|r| r.method.as_str()).collect();
-//         assert_eq!(methods, vec!["GET", "POST", "PATCH", "PUT", "DELETE"]);
-//     }
+    //     #[test]
+    //     fn test_all_methods() {
+    //         let input = "GET https://a.com\n\n### \nPOST https://a.com\n\n### \nPATCH https://a.com\n\n### \nPUT https://a.com\n\n### \nDELETE https://a.com";
+    //         let res = parse(input);
+    //         assert_eq!(res.len(), 5);
+    //         let methods: Vec<&str> = res.iter().map(|r| r.method.as_str()).collect();
+    //         assert_eq!(methods, vec!["GET", "POST", "PATCH", "PUT", "DELETE"]);
+    //     }
 
-//     #[test]
-//     fn test_empty_input() {
-//         let res = parse("");
-//         assert!(res.is_empty());
-//     }
+    //     #[test]
+    //     fn test_empty_input() {
+    //         let res = parse("");
+    //         assert!(res.is_empty());
+    //     }
 
-//     // File-based tests
-//     #[test]
-//     fn test_single_http_parse() {
-//         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../sample/single.http");
-//         let input = std::fs::read_to_string(path).expect("sample file not found");
-//         let res = parse(&input);
-//         assert!(!res.is_empty());
-//     }
+    //     // File-based tests
+    //     #[test]
+    //     fn test_single_http_parse() {
+    //         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../sample/single.http");
+    //         let input = std::fs::read_to_string(path).expect("sample file not found");
+    //         let res = parse(&input);
+    //         assert!(!res.is_empty());
+    //     }
 
-//     #[test]
-//     fn test_single_with_name_http_parse() {
-//         let path = concat!(
-//             env!("CARGO_MANIFEST_DIR"),
-//             "/../../sample/single-with-name.http"
-//         );
-//         let input = std::fs::read_to_string(path).expect("sample file not found");
-//         let res = parse(&input);
-//         assert!(!res.is_empty());
-//         assert!(!res[0].name.is_empty());
-//     }
+    //     #[test]
+    //     fn test_single_with_name_http_parse() {
+    //         let path = concat!(
+    //             env!("CARGO_MANIFEST_DIR"),
+    //             "/../../sample/single-with-name.http"
+    //         );
+    //         let input = std::fs::read_to_string(path).expect("sample file not found");
+    //         let res = parse(&input);
+    //         assert!(!res.is_empty());
+    //         assert!(!res[0].name.is_empty());
+    //     }
 }

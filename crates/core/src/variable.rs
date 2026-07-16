@@ -17,7 +17,10 @@ pub struct Variable {
 pub fn extract_variables(input: &str) -> Vec<String> {
     let re = regex::Regex::new(r"\{\{([^}]+)\}\}").unwrap();
 
-    let keys = re.captures_iter(input).map(|capture| capture[1].to_string()).collect();
+    let keys = re
+        .captures_iter(input)
+        .map(|capture| capture[1].to_string())
+        .collect();
 
     return keys;
 }
@@ -41,12 +44,15 @@ pub fn inject_variables(input: &str, variables: &HashMap<String, String>) -> Str
 
         output = output.replace(&placeholder, &value);
     }
-    
+
     return output;
 }
 
 pub fn variables_to_map(variables: &Vec<Variable>) -> HashMap<String, String> {
-    return variables.iter().map(|variable| (variable.key.clone(), variable.value.clone())).collect();
+    return variables
+        .iter()
+        .map(|variable| (variable.key.clone(), variable.value.clone()))
+        .collect();
 }
 
 impl Display for Variable {
@@ -56,27 +62,24 @@ impl Display for Variable {
         if !self.is_active {
             line.insert_str(0, "# ");
         }
-        
-        write!(
-            f,
-            "{}",
-            line
-        )
+
+        write!(f, "{}", line)
     }
 }
 
 impl FromStr for Variable {
     type Err = String;
-    
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let is_active = helpers::is_line_active(s);
         let uncommented = helpers::uncomment(s);
-        
+
         if !uncommented.starts_with("@") {
             return Err("string doesn't start with @".into());
         }
 
-        let (key, value) = uncommented.trim_start_matches("@")
+        let (key, value) = uncommented
+            .trim_start_matches("@")
             .split_once("=")
             .ok_or("invalid variable definition")?;
 
@@ -84,13 +87,18 @@ impl FromStr for Variable {
             comments: "".into(),
             is_active: is_active,
             key: key.trim().into(),
-            value: value.trim().into()
+            value: value.trim().into(),
         });
     }
 }
 
 impl Variable {
-    pub fn new(name: impl Into<String>, value: impl Into<String>, is_active: bool, comments: impl Into<String>) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        value: impl Into<String>,
+        is_active: bool,
+        comments: impl Into<String>,
+    ) -> Self {
         Self {
             key: name.into().trim().into(),
             value: value.into().trim().into(),
@@ -109,10 +117,16 @@ mod tests {
         // test recursive injection
         // test injection of variable inside another variable
 
-        assert_eq!(inject_variables("{{URL}}", &HashMap::from([
-            ("url".to_string(), "".to_string()),
-            ("URL".to_string(), "https://romera.dev".to_string())
-        ])), "https://romera.dev".to_string());
+        assert_eq!(
+            inject_variables(
+                "{{URL}}",
+                &HashMap::from([
+                    ("url".to_string(), "".to_string()),
+                    ("URL".to_string(), "https://romera.dev".to_string())
+                ])
+            ),
+            "https://romera.dev".to_string()
+        );
     }
 
     #[test]
@@ -120,58 +134,69 @@ mod tests {
         let variables = HashMap::from([
             ("foo".to_string(), "{{var}}".to_string()),
             ("var".to_string(), "real shit".to_string()),
-            ("bar".to_string(), "{{bar}}".to_string())
+            ("bar".to_string(), "{{bar}}".to_string()),
         ]);
 
         let expected = HashMap::from([
             ("foo".to_string(), "real shit".to_string()),
             ("var".to_string(), "real shit".to_string()),
-            ("bar".to_string(), "{{bar}}".to_string())
+            ("bar".to_string(), "{{bar}}".to_string()),
         ]);
-        
-        assert_eq!(
-            resolve_variables(variables),
-            expected
-        );
+
+        assert_eq!(resolve_variables(variables), expected);
     }
-    
+
     #[test]
     pub fn key_extraction() {
         assert_eq!(
-            extract_variables("This is a variable named {{VAR_NAME}} and its value is {{VAR_VALUE}}"),
+            extract_variables(
+                "This is a variable named {{VAR_NAME}} and its value is {{VAR_VALUE}}"
+            ),
             vec!["VAR_NAME".to_string(), "VAR_VALUE".to_string()]
         );
     }
-    
+
     #[test]
     pub fn parsing() {
-        assert_eq!("# @name=teste".parse::<Variable>().unwrap(), Variable {
-            comments: "".into(),
-            is_active: false,
-            key: "name".into(),
-            value: "teste".into()
-        });
-        
-        assert_eq!("# @name =teste".parse::<Variable>().unwrap(), Variable {
-            comments: "".into(),
-            is_active: false,
-            key: "name".into(),
-            value: "teste".into()
-        });
-        
-        assert_eq!("#@name=  teste".parse::<Variable>().unwrap(), Variable {
-            comments: "".into(),
-            is_active: false,
-            key: "name".into(),
-            value: "teste".into()
-        });
-        
-        assert_eq!("@name =  teste".parse::<Variable>().unwrap(), Variable {
-            comments: "".into(),
-            is_active: true,
-            key: "name".into(),
-            value: "teste".into()
-        });
+        assert_eq!(
+            "# @name=teste".parse::<Variable>().unwrap(),
+            Variable {
+                comments: "".into(),
+                is_active: false,
+                key: "name".into(),
+                value: "teste".into()
+            }
+        );
+
+        assert_eq!(
+            "# @name =teste".parse::<Variable>().unwrap(),
+            Variable {
+                comments: "".into(),
+                is_active: false,
+                key: "name".into(),
+                value: "teste".into()
+            }
+        );
+
+        assert_eq!(
+            "#@name=  teste".parse::<Variable>().unwrap(),
+            Variable {
+                comments: "".into(),
+                is_active: false,
+                key: "name".into(),
+                value: "teste".into()
+            }
+        );
+
+        assert_eq!(
+            "@name =  teste".parse::<Variable>().unwrap(),
+            Variable {
+                comments: "".into(),
+                is_active: true,
+                key: "name".into(),
+                value: "teste".into()
+            }
+        );
     }
 
     #[test]

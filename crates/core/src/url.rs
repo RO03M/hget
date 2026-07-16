@@ -43,13 +43,13 @@ impl Url {
         let href = input.to_string();
         let (url, fragment) = Self::parse_fragment(input);
         let url = url.unwrap();
-        
+
         let (host, query) = url.split_once('?').unwrap_or((&url, ""));
 
         let (protocol, host) = Self::parse_protocol(host);
         let (host, pathname) = Self::parse_pathname(&host.unwrap_or_default());
         let (host, port) = Self::parse_port(&host.unwrap_or("".to_string()));
-        
+
         let query: HashMap<String, String> = query
             .lines()
             .flat_map(|line| line.split('&'))
@@ -68,23 +68,23 @@ impl Url {
             host,
             query,
             fragment,
-            port
+            port,
         };
     }
 
     fn parse_fragment(input: &str) -> (Option<String>, Option<String>) {
         match input.split_once('#') {
             Some((url, fragment)) => (Some(url.to_owned()), Some(fragment.to_string())),
-            None => (Some(input.to_owned()), None)
+            None => (Some(input.to_owned()), None),
         }
     }
     fn parse_protocol(input: &str) -> (Option<String>, Option<String>) {
         match input.split_once("://") {
             Some((protocol, url)) => (Some(protocol.to_string()), Some(url.to_string())),
-            None => (Some(input.to_string()), None)
+            None => (Some(input.to_string()), None),
         }
     }
-    
+
     // Must not have protocol
     fn parse_port(host: &str) -> (Option<String>, Option<u16>) {
         match host.rsplit_once(':') {
@@ -92,17 +92,20 @@ impl Url {
                 if let Ok(port) = port.parse() {
                     return (Some(host.to_owned()), Some(port));
                 }
-                
+
                 return (Some(host.to_owned()), None);
             }
-            None => (Some(host.to_owned()), None)
+            None => (Some(host.to_owned()), None),
         }
     }
 
     fn parse_pathname(url: &str) -> (Option<String>, Option<String>) {
         match url.find('/') {
-            Some(index) => (Some(url[..index].to_string()), Some(url[index..].to_string())),
-            None => (Some(url.to_string()), None)
+            Some(index) => (
+                Some(url[..index].to_string()),
+                Some(url[index..].to_string()),
+            ),
+            None => (Some(url.to_string()), None),
         }
     }
 }
@@ -121,6 +124,9 @@ mod tests {
         assert_eq!(url.fragment().as_deref(), Some("section"));
         assert_eq!(url.query().get("q"), Some(&"1".to_string()));
         assert_eq!(url.query().get("lang"), Some(&"rust".to_string()));
-        assert_eq!(url.href(), "https://example.com:8080/path/to/page?q=1&lang=rust#section");
+        assert_eq!(
+            url.href(),
+            "https://example.com:8080/path/to/page?q=1&lang=rust#section"
+        );
     }
 }

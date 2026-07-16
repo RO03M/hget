@@ -1,7 +1,7 @@
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use hget_core::{self, http_file::HttpFile, repository::{self, Repository}, variable::variables_to_map};
+use hget_core::{self, repository::Repository, variable::variables_to_map};
 
 mod editor;
 
@@ -18,15 +18,9 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     Add,
-    Init {
-        path: Option<PathBuf>,
-    },
-    Run {
-        file: PathBuf,
-    },
-    Preview {
-        file: PathBuf,
-    }
+    Init { path: Option<PathBuf> },
+    Run { file: PathBuf },
+    Preview { file: PathBuf },
 }
 
 #[tokio::main]
@@ -40,7 +34,7 @@ async fn main() -> Result<(), String> {
             let httpfile = repo.get_http_file(&file)?;
 
             println!("{:?}", httpfile);
-            
+
             println!("{}", httpfile.to_string());
         }
         Some(Command::Add) => {
@@ -59,7 +53,7 @@ async fn main() -> Result<(), String> {
             if extension.is_none() {
                 file.set_extension("http");
             }
-            
+
             let target = std::path::absolute(".").unwrap().join(&file);
 
             if !target.exists() {
@@ -68,14 +62,18 @@ async fn main() -> Result<(), String> {
 
             let repo = Repository::open(&target).unwrap();
             let http_file = repo.get_http_file(&target).unwrap();
-            let target_http_req = http_file.first().expect("http file doesn't have a request to run");
+            let target_http_req = http_file
+                .first()
+                .expect("http file doesn't have a request to run");
             println!("{:?}", target_http_req.queries);
-            let response = target_http_req.run(variables_to_map(&http_file.variables)).await;
+            let response = target_http_req
+                .run(variables_to_map(&http_file.variables))
+                .await;
 
             println!("{response:?}");
         }
         None => {
-            let file = cli.file.expect("provide a .http file or use 'hget add'");
+            let _file = cli.file.expect("provide a .http file or use 'hget add'");
 
             // let content = fs::read_to_string(&file).unwrap();
             // let http_requests = hget_core::parser::parse(&content);

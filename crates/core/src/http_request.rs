@@ -2,7 +2,12 @@ use reqwest::{Client, Method};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr};
 
-use crate::{executor::HttpResponse, header::Header, query_param::{QueryParam, QueryParamVec}, variable::{Variable, inject_variables, resolve_variables}};
+use crate::{
+    executor::HttpResponse,
+    header::Header,
+    query_param::{QueryParam, QueryParamVec},
+    variable::{Variable, inject_variables, resolve_variables},
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HttpRequest {
@@ -75,14 +80,22 @@ impl HttpRequest {
 
         return format!("{}?{}", self.url, formatted_queries);
     }
-    
+
     pub fn injected(&self, variables: HashMap<String, String>) -> HttpRequest {
         let resolved_variables = resolve_variables(variables);
         let mut request = self.clone();
-        
+
         request.url = inject_variables(&self.url, &resolved_variables);
-        request.queries = self.queries.iter().map(|param| param.build_variables(&resolved_variables)).collect();
-        request.headers = self.headers.iter().map(|header| header.build_variables(&resolved_variables)).collect();
+        request.queries = self
+            .queries
+            .iter()
+            .map(|param| param.build_variables(&resolved_variables))
+            .collect();
+        request.headers = self
+            .headers
+            .iter()
+            .map(|header| header.build_variables(&resolved_variables))
+            .collect();
         request.body = if let Some(body) = self.body.clone() {
             Some(inject_variables(&body, &resolved_variables))
         } else {
@@ -91,10 +104,10 @@ impl HttpRequest {
 
         return request;
     }
-    
+
     pub async fn run(&self, variables: HashMap<String, String>) -> Result<HttpResponse, String> {
         let resolved_request = self.injected(variables);
-        
+
         if resolved_request.url.is_empty() {
             return Err("url is empty".into());
         }
@@ -189,11 +202,14 @@ Content-Type: application/json
     #[test]
     fn variables_injection() {
         let variables = HashMap::from([
-            ("URL".to_string(), "https://example.com?key=hidden".to_string()),
+            (
+                "URL".to_string(),
+                "https://example.com?key=hidden".to_string(),
+            ),
             ("mode".to_string(), "{{ENV}}".to_string()),
-            ("ENV".to_string(), "PROD".to_string())
+            ("ENV".to_string(), "PROD".to_string()),
         ]);
-        
+
         let req = HttpRequest {
             name: "test".to_string(),
             method: "POST".to_string(),
@@ -221,7 +237,10 @@ Content-Type: application/json
             ..Default::default()
         };
 
-        assert_eq!(req.injected(variables.clone()).queries.get(2), Some(&QueryParam::new("mode", "PROD", true, "")));
+        assert_eq!(
+            req.injected(variables.clone()).queries.get(2),
+            Some(&QueryParam::new("mode", "PROD", true, ""))
+        );
         assert_eq!(req.injected(variables.clone()).url, "https://example.com");
     }
 }

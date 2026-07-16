@@ -30,7 +30,9 @@ impl Repository {
             }
 
             if current_path.as_os_str() == "/" {
-                return Err("Couldn't find a .hget directory. Initialize it with \"hget init\"".into());
+                return Err(
+                    "Couldn't find a .hget directory. Initialize it with \"hget init\"".into(),
+                );
             }
 
             current_path = current_path.parent().unwrap_or(Path::new("/")).into();
@@ -59,11 +61,8 @@ impl Repository {
             dotpath.clone().join("description"),
             "Repository without description",
         );
-        
-        let _ = std::fs::write(
-            dotpath.clone().join("variables"),
-            "",
-        );
+
+        let _ = std::fs::write(dotpath.clone().join("variables"), "");
 
         Ok(Repository::new(&dotpath))
     }

@@ -86,7 +86,12 @@ pub fn is_line_commented(s: &str) -> bool {
 }
 
 pub fn uncomment(line: &str) -> &str {
-    return line.trim().trim_start_matches("#").trim_start_matches("//").trim_start_matches("/").trim();
+    return line
+        .trim()
+        .trim_start_matches("#")
+        .trim_start_matches("//")
+        .trim_start_matches("/")
+        .trim();
 }
 
 pub fn is_line_active(line: &str) -> bool {
@@ -94,7 +99,11 @@ pub fn is_line_active(line: &str) -> bool {
 }
 
 pub fn strip_slashes(line: &str) -> &str {
-    return line.trim().trim_start_matches("//").trim_start_matches("/").trim();
+    return line
+        .trim()
+        .trim_start_matches("//")
+        .trim_start_matches("/")
+        .trim();
 }
 
 #[cfg(test)]

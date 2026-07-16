@@ -1,12 +1,9 @@
 use std::{collections::HashMap, process::Command, sync::LazyLock};
 
-use tempfile::{NamedTempFile};
+use tempfile::NamedTempFile;
 
 static EDITOR_ARGS: LazyLock<HashMap<&str, Vec<&str>>> = LazyLock::new(|| {
-    return HashMap::from([
-        ("code", vec!["--wait"]),
-        ("subl", vec!["--wait"])
-    ]);
+    return HashMap::from([("code", vec!["--wait"]), ("subl", vec!["--wait"])]);
 });
 
 fn is_command_available(command: &str) -> bool {
@@ -62,5 +59,7 @@ pub fn open_editor_and_get_string() -> String {
         .status()
         .unwrap();
 
-    return std::fs::read_to_string(temp_file.path()).unwrap_or_default().to_string();
+    return std::fs::read_to_string(temp_file.path())
+        .unwrap_or_default()
+        .to_string();
 }
