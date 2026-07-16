@@ -14,6 +14,7 @@ pub struct QueryParam {
 
 pub trait QueryParamVec {
     fn to_tuples(&self) -> Vec<(&str, &str)>;
+    fn query_string(&self) -> String;
 }
 
 impl QueryParamVec for Vec<QueryParam> {
@@ -28,6 +29,22 @@ impl QueryParamVec for Vec<QueryParam> {
                 return Some((qp.name.as_str(), qp.value.as_str()));
             })
             .collect();
+    }
+
+    fn query_string(&self) -> String {
+        let query = self
+            .iter()
+            .filter_map(|query| {
+                if !query.is_active {
+                    return None;
+                }
+    
+                return Some(format!("{}={}", query.name, query.value));
+            })
+            .collect::<Vec<_>>()
+            .join("&");
+
+        return query;
     }
 }
 

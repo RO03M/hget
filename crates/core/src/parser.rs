@@ -122,7 +122,7 @@ pub fn parse(input: &str) -> HttpFile {
                 name,
                 method: String::new(),
                 url: String::new(),
-                params: vec![],
+                queries: vec![],
                 headers: vec![],
                 body: None,
             });
@@ -140,14 +140,14 @@ pub fn parse(input: &str) -> HttpFile {
             if let Some(req) = current_request.as_mut() {
                 req.method = method;
                 req.url = url;
-                req.params = params;
+                req.queries = params;
             } else {
                 current_request = Some(HttpRequest {
                     name: String::new(),
                     method: method,
                     url: url,
                     headers: vec![],
-                    params: params,
+                    queries: params,
                     body: None,
                 });
             }
@@ -164,7 +164,7 @@ pub fn parse(input: &str) -> HttpFile {
                 let params = resolve_params(line, comments);
                 comments = String::new();
 
-                req.params.extend(params);
+                req.queries.extend(params);
             } else {
                 let Ok(mut header) = line.parse::<Header>() else {
                     continue;
@@ -225,7 +225,7 @@ X-Content: {{xcontent}}
         let httpfile = parse(raw);
 
         assert_eq!(
-            httpfile.first().unwrap().params,
+            httpfile.first().unwrap().queries,
             vec![
                 QueryParam::new("filter", "true", true, ""),
                 QueryParam::new("leticia", "linda", true, ""),

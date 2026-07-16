@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, str::FromStr};
+use std::{collections::HashMap, fmt::Display, process::Output, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +14,25 @@ pub struct Variable {
     pub is_active: bool,
 }
 
+pub fn extract_variables(input: &str) -> Vec<String> {
+    let re = regex::Regex::new(r"\{\{([^}]+)\}\}").unwrap();
+
+    let keys = re.captures_iter(input).map(|capture| capture[1].to_string()).collect();
+
+    return keys;
+}
+
+// Injects variables into themselves
+pub fn resolve_variables(variables: HashMap<String, String>) -> HashMap<String, String> {
+    let mut output = variables.to_owned();
+    for (key, value) in &variables {
+        let injected = inject_variables(value, &variables);
+        output.insert(key.to_owned(), injected);
+    }
+
+    return output;
+}
+
 pub fn inject_variables(input: &str, variables: &HashMap<String, String>) -> String {
     let mut output = input.to_owned();
 
@@ -27,7 +46,7 @@ pub fn inject_variables(input: &str, variables: &HashMap<String, String>) -> Str
 }
 
 pub fn variables_to_map(variables: &Vec<Variable>) -> HashMap<String, String> {
-    
+    return variables.iter().map(|variable| (variable.key.clone(), variable.value.clone())).collect();
 }
 
 impl Display for Variable {
@@ -85,6 +104,45 @@ impl Variable {
 mod tests {
     use super::*;
 
+    #[test]
+    pub fn injection() {
+        // test recursive injection
+        // test injection of variable inside another variable
+
+        assert_eq!(inject_variables("{{URL}}", &HashMap::from([
+            ("url".to_string(), "".to_string()),
+            ("URL".to_string(), "https://romera.dev".to_string())
+        ])), "https://romera.dev".to_string());
+    }
+
+    #[test]
+    pub fn variable_resolve() {
+        let variables = HashMap::from([
+            ("foo".to_string(), "{{var}}".to_string()),
+            ("var".to_string(), "real shit".to_string()),
+            ("bar".to_string(), "{{bar}}".to_string())
+        ]);
+
+        let expected = HashMap::from([
+            ("foo".to_string(), "real shit".to_string()),
+            ("var".to_string(), "real shit".to_string()),
+            ("bar".to_string(), "{{bar}}".to_string())
+        ]);
+        
+        assert_eq!(
+            resolve_variables(variables),
+            expected
+        );
+    }
+    
+    #[test]
+    pub fn key_extraction() {
+        assert_eq!(
+            extract_variables("This is a variable named {{VAR_NAME}} and its value is {{VAR_VALUE}}"),
+            vec!["VAR_NAME".to_string(), "VAR_VALUE".to_string()]
+        );
+    }
+    
     #[test]
     pub fn parsing() {
         assert_eq!("# @name=teste".parse::<Variable>().unwrap(), Variable {

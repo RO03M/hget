@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use clap::{Parser, Subcommand};
-use hget_core::{self, http_file::HttpFile, repository::{self, Repository}};
+use hget_core::{self, http_file::HttpFile, repository::{self, Repository}, variable::variables_to_map};
 
 mod editor;
 
@@ -69,8 +69,8 @@ async fn main() -> Result<(), String> {
             let repo = Repository::open(&target).unwrap();
             let http_file = repo.get_http_file(&target).unwrap();
             let target_http_req = http_file.first().expect("http file doesn't have a request to run");
-            println!("{:?}", target_http_req.params);
-            let response = target_http_req.run(http_file.variables).await;
+            println!("{:?}", target_http_req.queries);
+            let response = target_http_req.run(variables_to_map(&http_file.variables)).await;
 
             println!("{response:?}");
         }
