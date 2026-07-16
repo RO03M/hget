@@ -63,6 +63,10 @@ impl QueryParam {
         }
     }
 
+    pub fn parse() {
+        
+    }
+    
     pub fn build_variables(&self, variables: &HashMap<String, String>) -> QueryParam {
         let mut output = self.clone();
 
