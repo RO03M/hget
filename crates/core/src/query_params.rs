@@ -40,6 +40,50 @@ impl QueryParams {
         
         Self { params: params }
     }
+
+    pub fn get_any(&self, key: &str) -> Option<QueryParam> {
+        return self.params.iter().find(|query| query.name == key).cloned();
+    }
+    
+    pub fn get(&self, key: &str) -> Option<QueryParam> {
+        return self.params.iter().find(|query| query.name == key && query.is_active).cloned();
+    }
+    
+    pub fn get_value(&self, key: &str) -> Option<String> {
+        if let Some(query) = self.get(key) {
+            Some(query.value)
+        } else {
+            None
+        }
+    }
+    
+    pub fn get_value_any(&self, key: &str) -> Option<String> {
+        if let Some(query) = self.get_any(key) {
+            Some(query.value)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_all(&self, key: &str) -> Vec<QueryParam> {
+        return self.params.iter().filter(|query| query.name == key && query.is_active).cloned().collect();
+    }
+    
+    pub fn get_values(&self, key: &str) -> Vec<String> {
+        let queries = self.get_all(key);
+
+        return queries.iter().map(|query| query.value.clone()).collect();
+    }
+
+    pub fn to_string(&self) -> String {
+        let active_queries = self.params.iter().filter(|query| query.is_active).cloned().collect::<Vec<QueryParam>>();
+
+        if active_queries.len() == 0 {
+            return String::new();
+        }
+
+        return active_queries.iter().map(|query| format!("{}={}", query.name, query.value)).collect::<Vec<_>>().join("&");
+    }
 }
 
 #[cfg(test)]
